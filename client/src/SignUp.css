@@ -1,0 +1,159 @@
+/* --- SIGN UP PAGE ONLY --- */
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 35px;
+  width: 100%;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.step-active { background-color: #6574f8; }
+.step-inactive { background-color: #c4c4c4; }
+
+.step-line {
+  width: 35px;
+  height: 2px;
+  background-color: #c4c4c4;
+}
+
+.select-input {
+  appearance: none; 
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position-x: 95%;
+  background-position-y: 50%;
+  color: #757575; 
+}
+
+.select-input:not(:invalid) {
+  color: #000;
+}
+
+/* --- UPDATED: Center the checkbox and text --- */
+.terms-checkbox {
+  display: flex;
+  align-items: center; /* Centers the checkbox vertically with the text */
+  justify-content: center; /* Centers the whole block horizontally */
+  gap: 10px;
+  font-size: 13px;
+  color: #000;
+  margin-top: 5px;
+  margin-bottom: 25px;
+  text-align: center; /* Centers the text itself */
+  line-height: 1.5;
+}
+
+.terms-checkbox input {
+  margin-top: 0; /* Removed the previous top margin */
+  cursor: pointer;
+}
+
+.terms-checkbox a {
+  color: #6574f8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* --- NEW: Back to Login link styles --- */
+.back-to-login-text {
+  margin-top: 25px;
+  font-size: 15px;
+  color: #000;
+  text-align: center;
+}
+
+.back-link {
+  color: #5b7cfa;
+  text-decoration: none;
+  font-style: italic;
+}
+
+/* --- NEW: Step 3 Phone Row Styles --- */
+.phone-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.country-select {
+  width: 35%; /* Keeps the dropdown compact */
+  padding: 15px 10px; 
+  font-size: 15px;
+}
+
+.phone-input {
+  flex: 1; /* Forces the number input to stretch and fill the remaining space */
+}
+
+/* --- NEW: Step 4 OTP Styles --- */
+.otp-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.otp-subtitle {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.otp-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.otp-input {
+  width: 100%;
+  aspect-ratio: 1/1; /* Keeps the boxes perfectly square */
+  max-width: 55px; /* Prevents them from getting too massive on wide screens */
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+  outline: none;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.otp-input:focus {
+  box-shadow: 0 6px 16px rgba(101, 116, 248, 0.3); /* Adds a subtle blue glow when focused */
+  transform: translateY(-2px);
+}
+
+.resend-text {
+  text-align: center;
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 30px;
+}
+
+.resend-link {
+  color: #5b7cfa;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}

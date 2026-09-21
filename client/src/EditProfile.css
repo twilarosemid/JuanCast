@@ -1,0 +1,286 @@
+/* =========================================
+   EDIT PROFILE WRAPPER & HEADER
+   ========================================= */
+.edit-profile-wrapper {
+  background-color: #f7f9fc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+  padding-bottom: 40px;
+}
+
+.profile-header {
+  width: 100%;
+  height: 280px;
+  
+  /* Strictly prevents the header from stretching down the screen */
+  flex: 0 0 280px; 
+  
+  background: linear-gradient(rgba(0, 123, 245, 0.60), rgba(0, 86, 210, 0.8)), 
+              url('./assets/background_landscape.png') center/cover no-repeat;
+  background-blend-mode: luminosity; 
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.profile-logo-bar {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+
+.profile-nav-logo {
+  height: 35px;
+}
+
+/* =========================================
+   EDIT OVERLAPPING CARD
+   ========================================= */
+.edit-profile-card {
+  background: white;
+  width: 90%;
+  max-width: 400px; 
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  margin-top: -120px; 
+  padding: 0 20px 30px;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 20px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.back-button:hover {
+  color: #007bf5;
+}
+
+.edit-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  margin-top: -10px;
+  margin-bottom: 25px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+}
+
+/* =========================================
+   AVATAR UPLOAD CONTAINER
+   ========================================= */
+.edit-avatar-container {
+  position: relative;
+  margin-top: -50px; 
+  margin-bottom: 15px;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.edit-avatar-circle {
+  width: 100px; 
+  height: 100px;
+  background: #e0e0e0;
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.edit-avatar-circle:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.upload-text {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #007bf5;
+  font-weight: 700;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* =========================================
+   FORM INPUTS
+   ========================================= */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.input-group input {
+  padding: 12px 15px;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #007bf5;
+}
+
+.username-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.username-wrapper:focus-within {
+  border-color: #007bf5;
+}
+
+.at-symbol {
+  background: #f0f0f0;
+  padding: 12px 15px;
+  color: #555;
+  font-weight: 700;
+  border-right: 1.5px solid #ccc;
+}
+
+.username-wrapper input {
+  border: none;
+  border-radius: 0;
+  flex: 1;
+}
+
+.username-wrapper input:focus {
+  border-color: transparent; 
+}
+
+.cooldown-text {
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.save-button {
+  background: #007bf5;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.save-button:hover {
+  background: #0066cc;
+}
+
+/* =========================================
+   DESKTOP LAYOUT (Centered single container)
+   ========================================= */
+/* =========================================
+   DESKTOP LAYOUT (Centered single container)
+   ========================================= */
+@media (min-width: 850px) {
+/* Added .edit-profile-wrapper to prevent the 280px flex rule from leaking */
+.edit-profile-wrapper .profile-header {
+  width: 100%;
+  height: 280px;
+  flex: 0 0 280px; 
+  background: linear-gradient(rgba(0, 123, 245, 0.4), rgba(0, 86, 210, 0.6)), 
+              url('./assets/background_landscape.png') center/cover no-repeat;
+  background-blend-mode: luminosity; 
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+  
+  .edit-profile-card {
+    /* Pulled higher up into the blue header to create more space at the bottom */
+    margin-top: -180px; 
+    
+    /* Adds a guaranteed buffer at the bottom of the screen */
+    margin-bottom: 40px;
+    
+    width: 600px;
+    max-width: 600px;
+    min-height: 440px; 
+    padding: 0 50px 50px; 
+  }
+
+  .edit-avatar-container {
+    margin-top: -125px; 
+    
+    /* Reduced from 35px because the form already has its own 25px gap */
+    margin-bottom: 10px; 
+  }
+
+  .edit-avatar-circle {
+    width: 250px;
+    height: 250px;
+  }
+
+  .avatar-overlay svg {
+    width: 60px;
+    height: 60px;
+  }
+}

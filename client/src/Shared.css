@@ -1,0 +1,173 @@
+/* --- SHARED LAYOUT & ASSETS --- */
+
+/* 1. Global Reset - Safely reset margins and padding */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 1b. ONLY apply 100% width/height to the main wrappers, NOT everything */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
+/* 2. Main Split-Screen Container */
+.login-container {
+/* ... the rest of your CSS stays exactly the same ... */
+  display: flex;
+  flex-direction: row; 
+  height: 100vh;
+  width: 100vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden; 
+}
+
+/* 3. Left Half */
+.login-left {
+  flex: 1; 
+  background-image: url('./assets/background_portrait.png'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-icon {
+  width: 80%;
+  max-width: 450px;
+  height: auto; 
+  object-fit: contain;
+  filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.3));
+}
+
+/* 4. Right Half & Form Container */
+.login-right {
+  flex: 1; 
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto; 
+}
+
+.login-content {
+  width: 100%;
+  max-width: 550px;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 5. Shared Form Elements */
+.logo {
+  width: 220px;
+  margin-bottom: 25px;
+}
+
+.login-title {
+  margin: 0 0 30px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+
+.login-input:focus {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2); 
+}
+
+.login-button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 25px;
+  background-color: white;
+  color: #5b7cfa;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.login-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.version {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* 6. Mobile Responsiveness */
+@media (max-width: 768px) {
+  .login-container { flex-direction: column; }
+  .login-left { flex: 0.4; }
+  .login-right { flex: 0.6; }
+  .hero-icon { max-width: 250px; }
+}   
+
+/* Move these from Login.css to Shared.css */
+.input-group {
+  position: relative;
+  width: 100%;
+}
+
+.password-group {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Disabled state for the NEXT button */
+.login-button:disabled {
+  background-color: #d1d1d1; /* Dark grey */
+  color: #888888; /* Dimmed text */
+  box-shadow: none; /* Flat, no pop */
+  cursor: not-allowed; /* Gives the user a 'stop' cursor */
+  opacity: 0.7; /* Makes the whole button slightly faded/blurred */
+  transform: none; /* Stops it from pressing down */
+}
+
+.error-message {
+  color: red;
+  margin: 0;
+}
