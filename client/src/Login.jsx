@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom'; 
 import './Shared.css';
@@ -10,18 +10,36 @@ import heroIcon from './assets/juancast_icon.webp';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   
-  // NEW: State for form inputs and errors
+  // State for form inputs and errors
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedLogin = localStorage.getItem('juancast_remembered_user');
+    if (!savedLogin) return;
+
+    try {
+      const parsedLogin = JSON.parse(savedLogin);
+      if (parsedLogin?.email) {
+        setEmail(parsedLogin.email);
+        setPassword(parsedLogin.password || '');
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.error('Failed to load remembered login:', error);
+      localStorage.removeItem('juancast_remembered_user');
+    }
+  }, []);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // NEW: Handle form submission to the database
+  // Handle form submission to the database
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage(''); // Clear old errors
@@ -37,10 +55,28 @@ const Login = () => {
 
       if (response.ok) {
         // Save the logged-in user to localStorage so other pages know who is active
-        localStorage.setItem('juancast_user', JSON.stringify(data.user));
+        const isAdmin = Boolean(data.user?.isAdmin || data.user?.role === 'admin');
+        const currentUser = {
+          ...data.user,
+          isAdmin,
+          role: data.user?.role || (isAdmin ? 'admin' : 'user')
+        };
+
+        localStorage.setItem('juancast_user', JSON.stringify(currentUser));
+        if (rememberMe) {
+          localStorage.setItem('juancast_remembered_user', JSON.stringify({ email, password }));
+        } else {
+          localStorage.removeItem('juancast_remembered_user');
+        }
+        window.dispatchEvent(new Event('juancast-user-updated'));
+
+        // Redirect admin users to dashboard, regular users to landing page with Daily Modal trigger
+        if (currentUser.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/', { state: { showDailyModal: true } });
+        }
         
-        // Redirect to the Landing Page
-        navigate('/');
       } else {
         // Show the error message from the backend (e.g., "Invalid email or password")
         setErrorMessage(data.message);
@@ -62,7 +98,6 @@ const Login = () => {
           <img src={logo} alt="JuanCast Logo" className="logo" /> 
           <h1 className="login-title">Account Login</h1>
           
-          {/* UPDATED: Attach the handleLogin function to the form */}
           <form className="login-form" onSubmit={handleLogin}>
             <div className="input-group">
               <input 
@@ -94,11 +129,16 @@ const Login = () => {
             </div>
 
             <div className="remember-me">
-              <input type="checkbox" id="remember" />
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
               <label htmlFor="remember">Remember Me</label>
             </div>
 
-            {/* NEW: Error Message Display */}
+            {/* Error Message Display */}
             <div style={{ minHeight: '24px', marginBottom: '10px', textAlign: 'center' }}>
               {errorMessage && <p style={{ color: 'red', margin: 0, fontSize: '14px', fontWeight: 'bold' }}>{errorMessage}</p>}
             </div>

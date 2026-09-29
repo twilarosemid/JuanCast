@@ -1,0 +1,158 @@
+.landing-nav-blue {
+  background-image: url('../../assets/background_landscape.png'); 
+  background-size: cover;
+  background-position: top;
+  background-repeat: no-repeat;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  width: 100%;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* When the welcome bar is active on the landing page, make the navbar tighter */
+.has-welcome-bar .landing-nav-blue {
+  padding: 10px 40px; 
+}
+
+.nav-logo { 
+  display: flex; 
+  align-items: center; 
+  cursor: pointer;
+}
+
+.nav-logo-img { 
+  height: 30px; 
+  width: auto; 
+}
+
+.nav-actions { 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+}
+
+.nav-bell { 
+  font-size: 20px; 
+  cursor: pointer; 
+}
+
+.nav-profile-icon {
+  width: 32px;
+  height: 32px;
+  background: white;
+  color: #0072ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+/* Welcome bar sub-component */
+.welcome-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px; /* Reduced vertical padding to move text up */
+  background: white;
+  border-top: none;
+  border-bottom: 1px solid #eee;
+  font-weight: bold;
+  box-shadow: none;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.welcome-text { font-size: 15px; }
+.welcome-stats { display: flex; align-items: center; gap: 20px; font-size: 15px; }
+.calendar-icon { background: #000; color: white; padding: 3px 5px; border-radius: 6px; font-size: 13px; }
+
+/* Dropdown Menu Positioning */
+.nav-profile-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 52px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eaeaea;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  z-index: 9999;
+  animation: dropdownFadeIn 0.15s ease-out forwards;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-user-header {
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #333;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #eee;
+  margin: 6px 0;
+}
+
+.navbar-dropdown-menu button {
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  width: 100%; 
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navbar-dropdown-menu button:hover {
+  background: #f4f6f8;
+  color: #0056d2;
+}
+
+.dropdown-logout-btn {
+  color: #e53e3e !important;
+}
+
+.dropdown-logout-btn:hover {
+  background: #fff5f5 !important;
+  color: #c53030 !important;
+}

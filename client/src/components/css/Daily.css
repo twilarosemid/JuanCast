@@ -1,0 +1,266 @@
+/* Daily.css */
+:root {
+  --bg-white: #ffffff;
+  --bg-light: #f8fafc;
+  --text-dark: #124076; /* Official deep blue from system design */
+  --text-grey: #64748b;
+  --gold-accent: #dbac34;
+  --border-color: #e2e8f0;
+  font-family: 'Avenir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Modal Background Scrim */
+.daily-rewards-scrim {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 80px; /* <-- This pushes the modal safely below your navbar */
+  padding-bottom: 20px; /* Adds breathing room at the bottom */
+  z-index: 9999;
+}
+
+/* Main Minimal Container */
+.daily-rewards-container {
+  width: min(90%, 420px);
+  max-height: 100%; /* <-- Prevents it from overflowing the screen */
+  overflow-y: auto; /* <-- Allows scrolling inside the modal if the screen is small */
+  background-color: var(--bg-white);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  /* overflow: hidden; is removed here so the scrollbar works properly */
+}
+
+/* Banner Image */
+.daily-banner-image {
+  width: 100%;
+  height: auto;
+  max-height: 120px; /* <-- Keeps the banner from getting too tall */
+  object-fit: cover;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 16px 16px 16px 16px; /* Restores the rounded top corners for the image */
+}
+
+/* Content Wrapper (holds the padding) */
+.daily-content-wrapper {
+  padding: 25px 30px 30px 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.daily-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.daily-header h1 {
+  color: var(--text-dark);
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+}
+
+.daily-header p {
+  color: var(--text-grey);
+  font-size: 13px;
+  margin: 0;
+}
+
+.daily-header p strong {
+  color: var(--text-dark);
+}
+
+/* 3x2 Grid */
+.daily-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+/* Minimal Grid Cards */
+.grid-card {
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grid-card.available,
+.day-7-card.available {
+  border-color: var(--gold-accent);
+  background-color: #fffdf5; /* Very subtle gold tint */
+}
+
+.card-day {
+  color: var(--text-grey);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+
+/* Icons */
+.reward-visual-container {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reward-icon {
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Text Values */
+.card-value {
+  color: var(--text-dark);
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+.card-currency {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-grey);
+}
+
+/* Minimal Buttons */
+.action-container {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.minimal-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 90%;
+  text-align: center;
+}
+
+.claim-btn {
+  background-color: var(--text-dark);
+  color: var(--bg-white);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.claim-btn:hover {
+  background-color: var(--gold-accent);
+}
+
+.upcoming-btn {
+  background-color: var(--bg-light);
+  color: var(--text-grey);
+  border: 1px solid var(--border-color);
+}
+
+.claimed-btn {
+  background-color: var(--bg-white);
+  color: var(--gold-accent);
+  border: 1px solid var(--gold-accent);
+}
+
+/* Day 7 Card - Special Layout */
+.day-7-card {
+  width: 100%;
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.day-7-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.grand-prize-tag {
+  background-color: var(--gold-accent);
+  color: var(--bg-white);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.day-7-info h2 {
+  color: var(--text-dark);
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.day-7-info p {
+  color: var(--gold-accent);
+  font-size: 14px;
+  font-weight: 900;
+  margin: 2px 0 0 0;
+}
+
+.day-7-visual {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.day-7-icon {
+  height: 50px;
+  object-fit: contain;
+}
+
+.day-7-action {
+  width: 90px;
+}
+
+.day-7-action .minimal-btn {
+  width: 100%;
+}
+
+/* Bottom Close Button */
+.daily-close-btn {
+  width: 100%;
+  background-color: transparent;
+  color: var(--text-grey);
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 5px 0;
+  transition: color 0.2s;
+}
+
+.daily-close-btn:hover {
+  color: var(--text-dark);
+}

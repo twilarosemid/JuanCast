@@ -1,0 +1,343 @@
+.rankings-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 25px;
+  padding: 40px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* 1 Item Layout: Center */
+.rankings-container.podium-one {
+  align-items: center;
+}
+
+/* 2 Items Layout: Force BOTH cards (regardless of gold/silver class) to share exact identical dimensions */
+.rankings-container.podium-two {
+  align-items: center;
+  gap: 30px;
+}
+
+.rankings-container.podium-two .ranking-card {
+  width: 195px !important;
+  transform: none !important;
+}
+
+.rankings-container.podium-two .ranking-img-placeholder {
+  height: 240px !important;
+}
+
+/* 3+ Items Layout: #2 Left, #1 Center (taller/elevated), #3 Right */
+.rankings-container.podium-three {
+  gap: 20px;
+}
+
+/* Rotations for 3+ items layout */
+.rankings-container.podium-three .silver-card {
+  transform: rotate(-3deg);
+}
+
+.rankings-container.podium-three .bronze-card {
+  transform: rotate(3deg);
+}
+
+.ranking-card {
+  border-radius: 18px;
+  width: 180px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+/* Gold Card (Rank 1) - Elevated in center */
+.gold-card {
+  background: linear-gradient(rgba(219, 172, 52, 0.9), rgba(219, 172, 52, 0.8)), 
+              url('../../assets/background_portrait.png') center/cover no-repeat;
+  width: 210px;
+  z-index: 3;
+  transform: translateY(-20px);
+}
+
+/* Silver Card (Rank 2) - Left side */
+.silver-card {
+  background: linear-gradient(rgba(205, 211, 219, 0.9), rgba(205, 211, 219, 0.8)), 
+              url('../../assets/background_portrait.png') center/cover no-repeat;
+  z-index: 2;
+}
+
+/* Bronze Card (Rank 3) - Right side */
+.bronze-card {
+  background: linear-gradient(rgba(191, 120, 69, 0.9), rgba(191, 120, 69, 0.75)), 
+              url('../../assets/background_portrait.png') center/cover no-repeat;
+  z-index: 1;
+}
+
+/* Standard cards for 4th place and beyond */
+.standard-card {
+  background: linear-gradient(rgba(100, 116, 139, 0.9), rgba(71, 85, 105, 0.8)), 
+              url('../../assets/background_portrait.png') center/cover no-repeat;
+  z-index: 1;
+}
+
+.ranking-img-placeholder {
+  width: 100%;
+  height: 220px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4)), 
+              url('https://via.placeholder.com/300x400/333/aaa?text=Portrait') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: bold;
+}
+
+.gold-card .ranking-img-placeholder { 
+  height: 260px; 
+}
+
+.ranking-info {
+  padding: 18px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+}
+
+.ranking-title { 
+  font-size: 13px; 
+  margin: 0 0 10px 0; 
+  line-height: 1.4; 
+  font-weight: 700; 
+  color: white; 
+}
+
+.silver-card .ranking-title { 
+  color: #1e293b; 
+}
+
+.ranking-votes { 
+  font-size: 18px; 
+  font-weight: 900; 
+  margin-bottom: 15px; 
+  color: #fff200; 
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); 
+}
+
+.silver-card .ranking-votes {
+  color: #0f172a;
+  text-shadow: none;
+}
+
+.bronze-card .ranking-votes { 
+  color: #ffe0b2; 
+}
+
+.ranking-medal {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: white;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 4;
+  color: #0f172a;
+}
+
+.cast-vote-btn {
+  background: rgba(255, 255, 255, 0.6);
+  color: #222;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 25px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.gold-card .cast-vote-btn, 
+.bronze-card .cast-vote-btn, 
+.standard-card .cast-vote-btn { 
+  background: rgba(255, 255, 255, 0.25); 
+  color: white; 
+}
+
+.silver-card .cast-vote-btn {
+  background: rgba(15, 23, 42, 0.15);
+  color: #0f172a;
+}
+
+.cast-vote-btn:hover { 
+  background: rgba(255, 255, 255, 0.9); 
+  transform: scale(1.05); 
+  color: #0f172a;
+}
+
+/* --- CLEANUP UTILITIES --- */
+.rankings-header {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.rankings-empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Moved dynamic background properties to CSS */
+.ranking-img-placeholder {
+  width: 100%;
+  height: 220px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background-color: #333; /* Fallback */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: bold;
+}
+
+/* --- VOTING & FEEDBACK MODAL STYLES --- */
+.vote-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.vote-modal-overlay.feedback-level {
+  z-index: 10001; /* Ensure success/error popup appears above the input modal */
+}
+
+.vote-modal-content {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  width: 90%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.vote-modal-title {
+  margin: 0 0 10px 0;
+  color: #124076; /* JuanCast Blue */
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.vote-modal-subtitle {
+  margin: 0 0 20px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.vote-modal-subtitle strong {
+  color: #124076;
+}
+
+.vote-modal-form-group {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.vote-modal-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #334155;
+  text-transform: uppercase;
+}
+
+.vote-modal-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.vote-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.vote-modal-cancel-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.vote-modal-confirm-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #124076; /* Primary Blue */
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Feedback Specific Elements */
+.feedback-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.feedback-title.success {
+  color: #10b981;
+}
+
+.feedback-title.error {
+  color: #ef4444;
+}
+
+.feedback-message {
+  margin: 0 0 25px 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.feedback-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #124076;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+}
