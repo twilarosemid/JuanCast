@@ -122,6 +122,8 @@ const Poll = mongoose.model('Poll', pollSchema);
 const rankingSchema = new mongoose.Schema({
   name: { type: String, required: true },
   imageUrl: { type: String, default: '' },
+  youtubeUrl: { type: String, default: '' },
+  youtubeStartTime: { type: Number, default: 0 }, // <-- ADD THIS LINE
   voteCount: { type: Number, default: 0 },
   position: { type: Number, default: 1 },
   createdAt: { type: Date, default: Date.now }
@@ -135,27 +137,6 @@ const normalizeImageUrl = (value = '') => {
   const formattedPath = cleanPath.startsWith('/uploads/') ? cleanPath : `/uploads/${cleanPath.replace(/^\//, '')}`;
   return `http://localhost:5000${formattedPath}`;
 };
-
-const defaultChikaArticle = {
-  title: "Seo In Guk charms Filo Heartriders in 'Heart Cookie' Manila fanmeet",
-  description: "Korean singer-actor Seo In Guk charmed fans with his 'Heart Cookie' Asia tour fan meeting on Saturday, drawing a strong Filo crowd and glowing reactions online.",
-  imageUrl: "",
-  url: "https://latestchika.com/just-in/2025/09/24/117910/seo-in-guk-charms-filo-heartriders-in-heart-cookie-manila-fanmeet/"
-};
-
-const defaultPolls = [
-  { title: 'ENHYPEN JAY', imageUrl: '', fromDate: '2026-09-01T00:00:00Z', toDate: '2026-09-19T00:00:00Z' },
-  { title: 'ENHYPEN JUNGWON', imageUrl: '', fromDate: '2026-09-01T00:00:00Z', toDate: '2026-09-19T00:00:00Z' },
-  { title: 'ENHYPEN HEESEUNG', imageUrl: '', fromDate: '2026-09-01T00:00:00Z', toDate: '2026-09-19T00:00:00Z' },
-  { title: 'ENHYPEN SUNOO', imageUrl: '', fromDate: '2026-09-01T00:00:00Z', toDate: '2026-09-19T00:00:00Z' },
-  { title: 'ENHYPEN SUNGHOON', imageUrl: '', fromDate: '2026-09-01T00:00:00Z', toDate: '2026-09-19T00:00:00Z' }
-];
-
-const defaultRankings = [
-  { name: 'Hulog - KAIA', imageUrl: '', voteCount: 7226032, position: 1 },
-  { name: 'Nasaan Ka Na - Ashtine Olviga', imageUrl: '', voteCount: 4756670, position: 2 },
-  { name: 'Lunod - HORI7ON', imageUrl: '', voteCount: 7226032, position: 3 }
-];
 
 const seedChikaArticles = async () => {
   try {
@@ -305,11 +286,18 @@ app.post('/api/check-username', async (req, res) => {
 // Chat Posts
 const postSchema = new mongoose.Schema({
   user: { type: String, required: true },
-  avatar: { type: String, default: "" },
+  avatar: { type: String, default: '' },
   text: { type: String, required: true },
-  likes: { type: [String], default: [] }, 
-  replies: { type: Array, default: [] } 
-}, { timestamps: true });
+  likes: { type: [String], default: [] },
+  // ADD THIS REPLIES ARRAY:
+  replies: [{
+    user: String,
+    avatar: String,
+    text: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
+  createdAt: { type: Date, default: Date.now }
+});
 
 const Post = mongoose.model('Post', postSchema);
 
@@ -334,6 +322,37 @@ app.post('/api/posts', async (req, res) => {
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Failed to create post" });
+  }
+});
+
+// POST: Add a reply to a specific post
+app.post('/api/posts/:id/reply', async (req, res) => {
+  try {
+    const { user, avatar, text } = req.body;
+    
+    // 1. Find the post by the ID in the URL
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // 2. Add the new reply to the array
+    post.replies.push({ 
+      user, 
+      avatar: avatar || '', 
+      text 
+    });
+
+    // 3. Save it to the database
+    await post.save();
+
+    // 4. Send the FULL updated post back to React so it can re-render the UI
+    res.status(200).json(post);
+    
+  } catch (error) {
+    console.error("Error adding reply:", error);
+    res.status(500).json({ message: 'Error adding reply', error: error.message });
   }
 });
 
@@ -502,13 +521,17 @@ app.get('/api/rankings', async (req, res) => {
 });
 
 app.post('/api/rankings', upload.single('image'), async (req, res) => {
-  try {
-    const { name, position } = req.body;
+try {
+    // Extract the new variable from req.body
+    const { name, position, youtubeUrl, youtubeStartTime } = req.body; 
+    
     if (!name) {
       return res.status(400).json({ message: 'Ranking name is required.' });
     }
     const ranking = await Ranking.create({
       name,
+      youtubeUrl: youtubeUrl || '',
+      youtubeStartTime: Number(youtubeStartTime) || 0, // <-- ADD THIS LINE
       imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
       voteCount: 0,
       position: Number(position || 1)
@@ -520,22 +543,25 @@ app.post('/api/rankings', upload.single('image'), async (req, res) => {
   }
 });
 
-app.put('/api/rankings/:id', upload.single('image'), async (req, res) => {
+app.post('/api/rankings', upload.single('image'), async (req, res) => {
   try {
-    const ranking = await Ranking.findById(req.params.id);
-    if (!ranking) {
-      return res.status(404).json({ message: 'Ranking not found.' });
+    // 1. Extract youtubeUrl from the request body
+    const { name, position, youtubeUrl } = req.body; 
+    
+    if (!name) {
+      return res.status(400).json({ message: 'Ranking name is required.' });
     }
-    ranking.name = req.body.name || ranking.name;
-    ranking.position = Number(req.body.position || ranking.position || 1);
-    if (req.file) {
-      ranking.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
-    }
-    await ranking.save();
-    res.status(200).json(serializeImage(ranking.toObject()));
+    const ranking = await Ranking.create({
+      name,
+      youtubeUrl: youtubeUrl || '', // 2. Save it to the database
+      imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
+      voteCount: 0,
+      position: Number(position || 1)
+    });
+    res.status(201).json(serializeImage(ranking.toObject()));
   } catch (error) {
-    console.error('Error updating ranking:', error);
-    res.status(500).json({ error: 'Failed to update ranking' });
+    console.error('Error creating ranking:', error);
+    res.status(500).json({ error: 'Failed to create ranking' });
   }
 });
 
@@ -597,19 +623,36 @@ app.post('/api/rankings/:id/vote', async (req, res) => {
   }
 });
 
-app.delete('/api/rankings/:id', async (req, res) => {
+app.put('/api/rankings/:id', upload.single('image'), async (req, res) => {
   try {
-    const removed = await Ranking.findByIdAndDelete(req.params.id);
-    if (!removed) {
+    const ranking = await Ranking.findById(req.params.id);
+    if (!ranking) {
       return res.status(404).json({ message: 'Ranking not found.' });
     }
-    res.status(200).json({ message: 'Ranking deleted.' });
+    
+    ranking.name = req.body.name || ranking.name;
+    ranking.position = Number(req.body.position || ranking.position || 1);
+    
+    // 3. Update the youtubeUrl if a new one is provided
+if (req.body.youtubeUrl !== undefined) {
+      ranking.youtubeUrl = req.body.youtubeUrl;
+    }
+    
+    // --- ADD THIS BLOCK ---
+    if (req.body.youtubeStartTime !== undefined) {
+      ranking.youtubeStartTime = Number(req.body.youtubeStartTime) || 0;
+    }
+
+    if (req.file) {
+      ranking.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
+    }
+    await ranking.save();
+    res.status(200).json(serializeImage(ranking.toObject()));
   } catch (error) {
-    console.error('Error deleting ranking:', error);
-    res.status(500).json({ error: 'Failed to delete ranking' });
+    console.error('Error updating ranking:', error);
+    res.status(500).json({ error: 'Failed to update ranking' });
   }
 });
-
 // Authentication Routes
 app.post('/api/request-otp', async (req, res) => {
   try {
@@ -710,22 +753,214 @@ app.post('/api/login', async (req, res) => {
       await user.save();
     }
 
-    res.status(200).json({ 
-      message: "Login successful!", 
-      user: {
-        id: user._id,
-        email: normalizedUserEmail,
-        username: profile ? profile.username : normalizedUserEmail,
-        fullName: profile ? profile.fullName : "User",
-        avatar: profile ? profile.avatar : "",
-        coverPhoto: profile?.coverPhoto || '',
-        isAdmin,
-        role: isAdmin ? 'admin' : (user.role || 'user')
-      }
+// Inside app.post('/api/login') ...
+    
+res.status(200).json({ 
+        message: "Login successful!", 
+        user: {
+          id: user._id,
+          email: normalizedUserEmail,
+          username: profile ? profile.username : normalizedUserEmail,
+          fullName: profile ? profile.fullName : "User",
+          avatar: profile ? profile.avatar : "",
+          coverPhoto: profile?.coverPhoto || '',
+          stars: profile?.stars ?? 100, 
+          suns: profile?.suns ?? 100,
+          dailyStreak: profile?.dailyStreak ?? 0,
+          lastClaimDate: profile?.lastClaimDate || null,
+          isAdmin,
+          role: isAdmin ? 'admin' : (user.role || 'user')
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Server error during login." });
+    }
+});
+// Your banner routes or app.listen should come AFTER that closing line.
+
+// --- YOUTUBE VIDEO SCHEMA ---
+const videoSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+  imageUrl: { type: String, default: '' },
+  youtubeUrl: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+});
+const Video = mongoose.model('Video', videoSchema);
+
+// --- YOUTUBE VIDEO API ROUTES ---
+app.get('/api/videos', async (req, res) => {
+  try {
+    const videos = await Video.find().sort({ createdAt: -1 });
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos:', error);
+    res.status(500).json({ error: 'Failed to fetch videos' });
+  }
+});
+
+app.post('/api/videos', upload.single('image'), async (req, res) => {
+  try {
+    const { title, subtitle, youtubeUrl } = req.body;
+    const newVideo = await Video.create({
+      title,
+      subtitle: subtitle || '',
+      youtubeUrl: youtubeUrl || '',
+      imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
+    });
+    res.status(201).json(newVideo);
+  } catch (error) {
+    console.error('Error creating video:', error);
+    res.status(500).json({ error: 'Failed to create video' });
+  }
+});
+
+// --- BANNER SCHEMA ---
+const bannerSchema = new mongoose.Schema({
+  imageUrl: { type: String, required: true },
+  linkUrl: { type: String, required: false },
+  altText: { type: String, required: false, default: 'Promo Banner' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Banner = mongoose.model('Banner', bannerSchema);
+
+// --- BANNER API ROUTES ---
+// GET: Fetch all banners for the carousel
+app.get('/api/banners', async (req, res) => {
+  try {
+    const banners = await Banner.find().sort({ createdAt: -1 });
+
+    return res.status(200).json(banners);
+  } catch (error) {
+    console.error('Error fetching banners:', error);
+
+    return res.status(500).json({
+      message: 'Error fetching banners.'
+    });
+  }
+});
+
+// POST: Upload and save a new banner
+app.post('/api/banners', (req, res) => {
+  upload.single('image')(req, res, async (uploadError) => {
+    if (uploadError) {
+      console.error('Banner upload error:', uploadError);
+
+      return res.status(400).json({
+        message: 'Failed to upload image.'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'Please select an image to upload.'
+      });
+    }
+
+    try {
+      const imageUrl =
+        `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+      const newBanner = await Banner.create({
+        imageUrl,
+        linkUrl: req.body.linkUrl || '',
+        altText: req.body.altText || 'Promo Banner'
+      });
+
+      return res.status(201).json(newBanner);
+    } catch (error) {
+      console.error('Error saving banner:', error);
+
+      fs.unlink(req.file.path, (cleanupError) => {
+        if (cleanupError) {
+          console.error('Error removing unsaved image:', cleanupError);
+        }
+      });
+
+      return res.status(500).json({
+        message: 'Failed to save banner.'
+      });
+    }
+  });
+});
+
+// DELETE: Remove a banner from Admin Dashboard
+app.delete('/api/banners/:id', async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        message: 'Invalid banner ID.'
+      });
+    }
+
+    const deletedBanner = await Banner.findByIdAndDelete(req.params.id);
+
+    if (!deletedBanner) {
+      return res.status(404).json({
+        message: 'Banner not found.'
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Banner deleted successfully.'
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error during login." });
+    console.error('Error deleting banner:', error);
+
+    return res.status(500).json({
+      message: 'Error deleting banner.'
+    });
+  }
+});
+
+const reportSchema = new mongoose.Schema({
+  subject: { type: String, required: true },
+  issue: { type: String, required: true },
+  fileUrl: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Report = mongoose.model('Report', reportSchema);
+
+// POST: Submit a new issue report
+// Notice we use upload.single('file') to match the formData.append('file', ...) from React
+app.post('/api/reports', upload.single('file'), async (req, res) => {
+  try {
+    const { subject, issue } = req.body;
+
+    if (!subject || !issue) {
+      return res.status(400).json({ message: 'Subject and issue text are required.' });
+    }
+
+    // Create the report in MongoDB
+    const newReport = await Report.create({
+      subject,
+      issue,
+      // If a file was uploaded, generate its URL using your existing normalizer. Otherwise, leave empty.
+      fileUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : '')
+    });
+
+    res.status(201).json({ 
+      message: 'Report submitted successfully', 
+      report: newReport 
+    });
+
+  } catch (error) {
+    console.error('Error saving report:', error);
+    res.status(500).json({ message: 'Internal server error while saving report.' });
+  }
+});
+
+// Optional GET route if you want to view reports later in your Admin Dashboard
+app.get('/api/reports', async (req, res) => {
+  try {
+    const reports = await Report.find().sort({ createdAt: -1 });
+    res.status(200).json(reports);
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ error: 'Failed to fetch reports' });
   }
 });
 

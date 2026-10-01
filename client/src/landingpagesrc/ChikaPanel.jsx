@@ -26,6 +26,7 @@ const ChikaCard = ({ chika, logoUrl }) => {
             src={chika.imageUrl}
             alt={chika.title || 'Latest Chika'}
             className="chika-main-image"
+            draggable="false"
             onError={(e) => {
               e.target.style.display = 'none';
             }}

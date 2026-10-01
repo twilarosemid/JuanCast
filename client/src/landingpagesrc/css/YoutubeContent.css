@@ -1,0 +1,82 @@
+/* The horizontal scrolling track */
+.yt-scroll-container {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  
+  /* Forces the container to create empty space for the cards to expand into */
+  padding: 30px 25px 30px 5px !important; 
+  
+  scroll-behavior: smooth;
+  align-items: center;
+  
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+.yt-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual Video Cards */
+.yt-card {
+  flex: 0 0 340px; 
+  height: 191px; 
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  background-color: #000;
+  cursor: pointer;
+  z-index: 1;
+  
+  /* Forces the browser to prepare for the zoom animation */
+  will-change: transform;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, z-index 0s !important;
+}
+
+/* The Hover Effect */
+.yt-card:hover {
+  /* The !important tags force this to override everything else */
+  transform: scale(1.05) !important; 
+  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2) !important;    
+  z-index: 50 !important;
+}
+/* ... keep the rest of your CSS exactly the same ... */    
+.yt-card-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Dark gradient overlay anchored to the bottom */
+.yt-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px 15px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.yt-card-main-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.yt-card-subtitle {
+  color: #cccccc;
+  font-size: 10px;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

@@ -1,12 +1,16 @@
 import React from 'react';
 import RankingsView from './RankingsView';
 import PollsView from './PollsView';
+import BannerCarousel from './BannerCarousel';
+import YouTubeContent from './YouTubeContent';
 
 const HomeCenterView = () => {
   return (
     <>
-      <RankingsView />
-      <PollsView />
+    <BannerCarousel/>
+      <RankingsView/>
+      <PollsView/>
+      <YouTubeContent/>
     </>
   );
 };

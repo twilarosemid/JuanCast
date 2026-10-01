@@ -1,0 +1,263 @@
+/* Container sizing and alignment within the main layout */
+.settings-page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.settings-container {
+  width: 100%;
+  max-width: 600px; /* Keeps the settings menu centered and readable */
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Main white card for the menu items */
+.settings-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.settings-menu-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 18px 24px;
+  cursor: pointer;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.settings-menu-item:last-child {
+  border-bottom: none;
+}
+
+.settings-menu-item:hover {
+  background-color: #f8fafc;
+}
+
+/* Icon styling matching Juancast primary blue */
+.settings-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #1e88e5; /* App primary blue */
+  margin-right: 16px;
+}
+
+.settings-menu-label {
+  flex: 1;
+  color: #1e293b; /* Slate text */
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.settings-menu-chevron {
+  color: #94a3b8;
+  font-size: 22px;
+  font-weight: 400;
+  transition: transform 0.2s ease;
+}
+
+.settings-menu-item:hover .settings-menu-chevron {
+  transform: translateX(4px);
+  color: #1e88e5;
+}
+
+/* Action Buttons */
+.settings-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.settings-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-forgot {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
+}
+
+.btn-forgot:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn-deactivate {
+  background-color: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #ffe4e6;
+}
+
+.btn-deactivate:hover {
+  background-color: #ffe4e6;
+}
+
+/* Document formatting for Terms, Privacy, etc. */
+.legal-document {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.legal-document h3 {
+  color: #1e293b;
+  font-size: 16px;
+  margin-top: 25px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.legal-document h3:first-child {
+  margin-top: 0;
+}
+
+.legal-document p {
+  margin-bottom: 12px;
+}
+
+.legal-document ol {
+  padding-left: 20px;
+  margin-bottom: 20px;
+}
+
+.legal-document li {
+  margin-bottom: 8px;
+}
+
+/* FAQ Accordion Styles */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.faq-item {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-question {
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 15px;
+  color: #1e293b;
+  transition: background-color 0.2s ease;
+}
+
+.faq-question:hover {
+  background-color: #f8fafc;
+}
+
+.faq-answer {
+  padding: 0 24px 20px 24px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+  animation: slideDown 0.2s ease-out;
+}
+
+.faq-chevron {
+  color: #94a3b8;
+  transition: transform 0.3s ease, color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.faq-chevron.open {
+  transform: rotate(180deg);
+  color: #1e88e5;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Report Form Styles */
+.report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  padding: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #334155;
+  background-color: #f8fafc;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1e88e5;
+  background-color: #ffffff;
+}
+
+.file-input {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 14px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.btn-submit-report {
+  background-color: #ff4055; /* Matches the red button in the mockup */
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+.btn-submit-report:hover {
+  background-color: #e6394c;
+}

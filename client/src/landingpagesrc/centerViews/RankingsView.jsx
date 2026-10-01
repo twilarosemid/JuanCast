@@ -1,5 +1,6 @@
+import ReactDOM from 'react-dom';
 import React, { useEffect, useState } from 'react';
-import '../css/Rankings.css';
+import '../css/Rankings.css'; 
 
 const nFormatter = (value = 0) => new Intl.NumberFormat('en-US').format(Number(value || 0));
 
@@ -14,6 +15,9 @@ const RankingsView = () => {
 
   // Custom Feedback/Success Modal State
   const [feedback, setFeedback] = useState({ isOpen: false, message: '', type: 'success' });
+
+  // --- FIXED: Pure Hover State ---
+  const [hoveredRankId, setHoveredRankId] = useState(null);
 
   useEffect(() => {
     const loadRankings = async () => {
@@ -93,6 +97,16 @@ const RankingsView = () => {
     }
   };
 
+  // --- FIXED: Requires mute=1 and controls=0 for hover auto-play to work ---
+  const getYouTubeEmbedUrl = (url, startTime = 0) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/))([^&?]*)/);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&controls=0&start=${startTime}`;
+    }
+    return null;
+  };
+
   // 1. Sort by votes
   const sortedRankings = [...rankings].sort((a, b) => {
     const votesA = Number(a.voteCount || 0);
@@ -120,20 +134,12 @@ const RankingsView = () => {
     arrangedRankings = [rankedWithPositions[0], rankedWithPositions[1]]; 
     containerLayoutClass = 'podium-two';
   } else if (rankedWithPositions.length === 3) {
-    // 2nd Place on Left, 1st Place Center, 3rd Place Right
     arrangedRankings = [rankedWithPositions[1], rankedWithPositions[0], rankedWithPositions[2]]; 
     containerLayoutClass = 'podium-three';
   }
 
   return (
     <>
-      <div className="carousel-banner card-shadow">
-        <div className="img-placeholder-text">Banner Image Placeholder</div>
-        <div className="carousel-dots">
-          <span className="dot"></span><span className="dot active"></span><span className="dot"></span>
-        </div>
-      </div>
-
       <div className="section-header rankings-header">
         <h2>Rankings</h2>
         <a href="#" className="view-all-link">View All</a>
@@ -149,18 +155,39 @@ const RankingsView = () => {
             const rankPos = item.dynamicPosition;
             const cardClass = rankPos === 1 ? 'gold-card' : rankPos === 2 ? 'silver-card' : rankPos === 3 ? 'bronze-card' : 'standard-card';
             const medal = rankPos === 1 ? '🥇' : rankPos === 2 ? '🥈' : rankPos === 3 ? '🥉' : `#${rankPos}`;
+            const itemId = item._id || item.id || `${item.name}-${index}`;
 
             return (
-              <div key={item._id || item.id || `${item.name}-${index}`} className={`ranking-card ${cardClass}`}>
+              <div key={itemId} className={`ranking-card ${cardClass}`}>
                 <div className="ranking-medal">{medal}</div>
+                
+                {/* --- FIXED: Restored Hover Trigger --- */}
                 <div
                   className="ranking-img-placeholder"
+                  onMouseEnter={() => setHoveredRankId(itemId)}
+                  onMouseLeave={() => setHoveredRankId(null)}
                   style={{
                     backgroundImage: item.imageUrl ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url(${item.imageUrl})` : undefined
                   }}
                 >
                   {!item.imageUrl && <span>Image</span>}
                 </div>
+                
+                {/* --- FIXED: Restored Hover Portal Logic --- */}
+                {hoveredRankId === itemId && item.youtubeUrl && ReactDOM.createPortal(
+                  <div className="youtube-hover-scrim">
+                    <div className="youtube-video-container">
+                      <iframe 
+                        src={getYouTubeEmbedUrl(item.youtubeUrl, item.youtubeStartTime)} 
+                        title="YouTube video player" 
+                        allow="autoplay; encrypted-media" 
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>,
+                  document.body
+                )}
+
                 <div className="ranking-info">
                   <h3 className="ranking-title">{item.name}</h3>
                   <div className="ranking-votes">{nFormatter(item.voteCount)}</div>
@@ -209,7 +236,7 @@ const RankingsView = () => {
         <div className="vote-modal-overlay feedback-level" onClick={() => setFeedback({ ...feedback, isOpen: false })}>
           <div className="vote-modal-content card-shadow" onClick={(e) => e.stopPropagation()}>
             <div className="feedback-icon">
-              {feedback.type === 'success' ? '🎉' : '⚠️'}
+              {feedback.type === 'success' ? '🎉' : '⚠'}
             </div>
             <h3 className={`vote-modal-title feedback-title ${feedback.type}`}>
               {feedback.type === 'success' ? 'Success!' : 'Oops!'}

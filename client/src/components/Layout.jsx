@@ -99,8 +99,6 @@ const Layout = ({
                       <button onClick={() => { setDropdownOpen(false); navigate('/profile'); }}>Profile</button>
                       <button onClick={() => { setDropdownOpen(false); navigate('/transactions'); }}>Transactions</button>
                       <button onClick={() => { setDropdownOpen(false); navigate('/settings'); }}>Settings</button>
-                      <button onClick={() => { setDropdownOpen(false); navigate('/faqs'); }}>FAQs</button>
-                      <button onClick={() => { setDropdownOpen(false); navigate('/report'); }}>Report a problem</button>
                       <div className="dropdown-divider"></div>
                       <button className="dropdown-logout-btn" onClick={handleLogout}>Logout</button>
                     </div>

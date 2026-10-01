@@ -192,20 +192,6 @@ html, body, #root {
 .section-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
 .view-all-link { color: #0056d2; text-decoration: none; font-size: 14px; font-weight: bold; }
 
-/* Carousel Banner */
-.carousel-banner {
-  height: 170px;
-  min-height: 170px;
-  background: #cce5ff;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding-bottom: 15px;
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-}
 .img-placeholder-text {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   color: #0056d2; font-weight: bold; opacity: 0.5;

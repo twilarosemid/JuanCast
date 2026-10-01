@@ -1,4 +1,5 @@
-import React from 'react';
+import ReactDOM from 'react-dom';
+import React, { useState } from 'react';
 import './css/Daily.css';
 
 // Banner and Star Imports
@@ -73,9 +74,11 @@ const DailyRewardsModal = ({
     isOpen, 
     onClose, 
     onClaimReward,
-    currentStreak = 0,       // Pulled from database via parent component
-    hasClaimedToday = false  // Pulled from database via parent component
+    currentStreak = 0,       
+    hasClaimedToday = false  
 }) => {
+    // Custom Alert State
+    const [alertMessage, setAlertMessage] = useState('');
 
     // Evaluates status dynamically based on real database properties
     const getDayStatus = (day) => {
@@ -84,12 +87,52 @@ const DailyRewardsModal = ({
         return 'locked';
     };
 
+    // Wrapper function to capture the response message and show the pop-up
+    const executeClaim = async (day, value, currency) => {
+        const message = await onClaimReward(day, value, currency);
+        if (message) {
+            setAlertMessage(message);
+        }
+    };
+
     if (!isOpen) return null;
 
-    return (
+    // --- CRITICAL FIX: Wrapped in ReactDOM.createPortal to break out of layout ---
+    return ReactDOM.createPortal(
         <div className="daily-rewards-scrim" onClick={onClose}>
-            <div className="daily-rewards-container" onClick={e => e.stopPropagation()}>
+            <div className="daily-rewards-container" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
                 
+                {/* Custom Alert Pop-up Overlay */}
+                {alertMessage && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                        backgroundColor: 'rgba(22, 22, 22, 0.6)', backdropFilter: 'blur(3px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        zIndex: 100, borderRadius: 'inherit'
+                    }}>
+                        <div style={{ 
+                            background: 'white', padding: '25px', borderRadius: '15px', 
+                            textAlign: 'center', width: '80%', maxWidth: '320px', 
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.2)', color: '#1f2937'
+                        }}>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', fontWeight: 800 }}>Notice</h3>
+                            <p style={{ margin: '0 0 20px 0', color: '#475569', fontSize: '15px', fontWeight: 'bold' }}>
+                                {alertMessage}
+                            </p>
+                            <button 
+                                onClick={() => setAlertMessage('')} 
+                                style={{ 
+                                    background: '#2563eb', color: 'white', border: 'none', 
+                                    padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', 
+                                    fontWeight: 'bold', width: '100%', transition: 'background 0.2s' 
+                                }}
+                            >
+                                Okay
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* The Banner Image */}
                 <img src={StarBanner} alt="Claim Your Daily Stars" className="daily-banner-image" />
 
@@ -105,22 +148,21 @@ const DailyRewardsModal = ({
                                 key={reward.day} 
                                 reward={reward} 
                                 status={getDayStatus(reward.day)}
-                                // Fires the DB function with day, value, and 'STARS'
-                                onClaim={() => onClaimReward(reward.day, reward.value, reward.currency)} 
+                                onClaim={() => executeClaim(reward.day, reward.value, reward.currency)} 
                             />
                         ))}
                     </div>
                     
                     <Day7Reward 
                         status={getDayStatus(7)} 
-                        // Fires the DB function for Day 7 with 1000 and 'STARS'
-                        onClaim={() => onClaimReward(7, 1000, 'STARS')} 
+                        onClaim={() => executeClaim(7, 1000, 'STARS')} 
                     />
                     
                     <button className="daily-close-btn" onClick={onClose}>CLOSE</button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body // <-- This tells React to render it over the entire page
     );
 };
 
