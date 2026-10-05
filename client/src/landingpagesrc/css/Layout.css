@@ -60,6 +60,10 @@ html, body, #root {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
 
+.sticky-header-container .landing-nav-blue {
+  z-index: 20;
+}
+
 .nav-logo { display: flex; align-items: center; }
 .nav-logo-img { height: 30px; width: auto; }
 .nav-actions { display: flex; align-items: center; gap: 20px; }
@@ -257,3 +261,4 @@ html, body, #root {
 .modal-cancel-btn:hover { background: #e2e6ea; }
 .modal-confirm-btn { background: #2563eb; color: white; }
 .modal-confirm-btn:hover { background: #1d4ed8; }
+

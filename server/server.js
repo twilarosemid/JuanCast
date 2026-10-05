@@ -110,8 +110,20 @@ const chikaSchema = new mongoose.Schema({
 });
 const Chika = mongoose.model('Chika', chikaSchema);
 
+// --- NEW: POLL GROUP SCHEMA ---
+const pollGroupSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  imageUrl: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now }
+});
+const PollGroup = mongoose.model('PollGroup', pollGroupSchema);
+// ------------------------------
+
 const pollSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  group: { type: String, default: '' },      // ADDED
+  type: { type: String, default: '' },      // ADDED
+  description: { type: String, default: '' },    // ADDED
   imageUrl: { type: String, default: '' },
   fromDate: { type: Date, required: true },
   toDate: { type: Date, required: true },
@@ -121,14 +133,33 @@ const Poll = mongoose.model('Poll', pollSchema);
 
 const rankingSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  group: { type: String, default: '' },       // <-- ADDED: Links to Poll Group
+  category: { type: String, default: '' },    // <-- ADDED: Links to specific Poll (e.g. Ace of the Year)
   imageUrl: { type: String, default: '' },
   youtubeUrl: { type: String, default: '' },
-  youtubeStartTime: { type: Number, default: 0 }, // <-- ADD THIS LINE
+  youtubeStartTime: { type: Number, default: 0 }, 
   voteCount: { type: Number, default: 0 },
   position: { type: Number, default: 1 },
   createdAt: { type: Date, default: Date.now }
 });
 const Ranking = mongoose.model('Ranking', rankingSchema);
+
+// --- ADD THIS MATH HELPER RIGHT BELOW THE SCHEMA ---
+// This ensures ranks are calculated independently for EACH category
+const updateRankingPositions = async () => {
+  const allRankings = await Ranking.find().sort({ voteCount: -1, createdAt: 1 });
+  const categories = [...new Set(allRankings.map(r => `${r.group}-${r.category}`))];
+  
+  for (const catKey of categories) {
+    const catRankings = allRankings.filter(r => `${r.group}-${r.category}` === catKey);
+    for (let i = 0; i < catRankings.length; i++) {
+      if (catRankings[i].position !== i + 1) {
+        catRankings[i].position = i + 1;
+        await catRankings[i].save();
+      }
+    }
+  }
+};
 
 const normalizeImageUrl = (value = '') => {
   if (!value) return '';
@@ -142,7 +173,7 @@ const seedChikaArticles = async () => {
   try {
     const count = await Chika.countDocuments();
     if (count === 0) {
-      await Chika.create(defaultChikaArticle);
+      // await Chika.create(defaultChikaArticle);
       console.log('Seeded default Chika article.');
     }
   } catch (error) {
@@ -154,7 +185,7 @@ const seedPolls = async () => {
   try {
     const count = await Poll.countDocuments();
     if (count === 0) {
-      await Poll.insertMany(defaultPolls);
+      // await Poll.insertMany(defaultPolls);
       console.log('Seeded default poll data.');
     }
   } catch (error) {
@@ -166,7 +197,7 @@ const seedRankings = async () => {
   try {
     const count = await Ranking.countDocuments();
     if (count === 0) {
-      await Ranking.insertMany(defaultRankings);
+      // await Ranking.insertMany(defaultRankings);
       console.log('Seeded default ranking data.');
     }
   } catch (error) {
@@ -212,6 +243,46 @@ app.get('/api/users/profile/:username', async (req, res) => {
   } catch (error) {
     console.error("Error fetching public profile:", error);
     res.status(500).json({ error: "Server error fetching profile." });
+  }
+});
+
+app.put('/api/users/follow', async (req, res) => {
+  try {
+    const { email, username } = req.body;
+    if (!email || !username) return res.status(400).json({ message: 'Email and username are required.' });
+
+    const follower = await Profile.findOne({ email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } });
+    const followed = await Profile.findOne({ username: { $regex: `^${escapeRegex(String(username).replace(/^@/, ''))}$`, $options: 'i' } });
+    if (!follower || !followed) return res.status(404).json({ message: 'Profile not found.' });
+
+    const normalizeHandle = (value = '') => String(value).replace(/^@/, '').trim().toLowerCase();
+    const followerHandle = normalizeHandle(follower.username);
+    const followedHandle = normalizeHandle(followed.username);
+    if (followerHandle === followedHandle) return res.status(400).json({ message: 'You cannot follow yourself.' });
+
+    const isFollowing = followed.followers.some(handle => normalizeHandle(handle) === followerHandle);
+    if (isFollowing) {
+      followed.followers = followed.followers.filter(handle => normalizeHandle(handle) !== followerHandle);
+      follower.following = follower.following.filter(handle => normalizeHandle(handle) !== followedHandle);
+    } else {
+      followed.followers.push(`@${follower.username}`);
+      follower.following.push(`@${followed.username}`);
+    }
+
+    await Promise.all([follower.save(), followed.save()]);
+    if (!isFollowing) {
+      await createNotification({
+        recipient: followed.username,
+        actor: `@${follower.username}`,
+        actorAvatar: follower.avatar,
+        type: 'follow'
+      });
+    }
+
+    res.status(200).json({ isFollowing: !isFollowing, followersCount: followed.followers.length });
+  } catch (error) {
+    console.error('Error updating follow status:', error);
+    res.status(500).json({ message: 'Failed to update follow status.' });
   }
 });
 
@@ -270,6 +341,40 @@ app.post('/api/users/daily-claim', async (req, res) => {
   }
 });
 
+app.post('/api/users/convert-suns', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email || '');
+    const sunsToConvert = Number(req.body.suns);
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+    if (!Number.isSafeInteger(sunsToConvert) || sunsToConvert < 1) {
+      return res.status(400).json({ message: 'Enter a whole number of Suns to convert.' });
+    }
+
+    const starsToAdd = sunsToConvert * 1800;
+    if (!Number.isSafeInteger(starsToAdd)) {
+      return res.status(400).json({ message: 'Conversion amount is too large.' });
+    }
+
+    const emailFilter = { email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } };
+    const profile = await Profile.findOneAndUpdate(
+      { ...emailFilter, suns: { $gte: sunsToConvert } },
+      { $inc: { suns: -sunsToConvert, stars: starsToAdd } },
+      { new: true }
+    );
+
+    if (!profile) {
+      const existingProfile = await Profile.findOne(emailFilter);
+      if (!existingProfile) return res.status(404).json({ message: 'User profile not found.' });
+      return res.status(400).json({ message: 'Not enough Suns for this conversion.' });
+    }
+
+    res.status(200).json({ stars: profile.stars, suns: profile.suns, convertedSuns: sunsToConvert, addedStars: starsToAdd });
+  } catch (error) {
+    console.error('Error converting Suns to Stars:', error);
+    res.status(500).json({ message: 'Failed to convert Suns to Stars.' });
+  }
+});
+
 app.post('/api/check-username', async (req, res) => {
   try {
     const { username } = req.body;
@@ -301,12 +406,101 @@ const postSchema = new mongoose.Schema({
 
 const Post = mongoose.model('Post', postSchema);
 
+const notificationSchema = new mongoose.Schema({
+  recipient: { type: String, required: true, index: true },
+  actor: { type: String, required: true },
+  actorAvatar: { type: String, default: '' },
+  type: { type: String, enum: ['like', 'reply', 'follow'], required: true },
+  postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
+  replyIndex: { type: Number, default: null },
+  preview: { type: String, default: '' },
+  isRead: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+const Notification = mongoose.model('Notification', notificationSchema);
+
+const normalizeHandle = (value = '') => String(value).replace(/^@/, '').trim().toLowerCase();
+
+const createNotification = async ({ recipient, actor, actorAvatar = '', type, postId = null, replyIndex = null, preview = '' }) => {
+  if (!recipient || !actor || normalizeHandle(recipient) === normalizeHandle(actor)) return;
+  await Notification.create({
+    recipient: normalizeHandle(recipient),
+    actor: String(actor).startsWith('@') ? String(actor) : `@${actor}`,
+    actorAvatar,
+    type,
+    postId,
+    replyIndex,
+    preview
+  });
+};
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const username = normalizeHandle(req.query.username);
+    if (!username) return res.status(400).json({ message: 'Username is required.' });
+    const notifications = await Notification.find({ recipient: username }).sort({ createdAt: -1 }).limit(50);
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Failed to fetch notifications.' });
+  }
+});
+
+app.patch('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const username = normalizeHandle(req.body.username);
+    if (!username) return res.status(400).json({ message: 'Username is required.' });
+    const notification = await Notification.findOneAndUpdate(
+      { _id: req.params.id, recipient: username },
+      { isRead: true },
+      { new: true }
+    );
+    if (!notification) return res.status(404).json({ message: 'Notification not found.' });
+    res.status(200).json(notification);
+  } catch (error) {
+    console.error('Error marking notification read:', error);
+    res.status(500).json({ message: 'Failed to update notification.' });
+  }
+});
+
 app.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find().sort({ createdAt: -1 });
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+app.put('/api/posts/:id/like', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    const actor = String(req.body.user || '').trim();
+    if (!post) return res.status(404).json({ message: 'Post not found.' });
+    if (!actor || normalizeHandle(actor) === 'guest') return res.status(400).json({ message: 'A signed-in user is required.' });
+
+    const alreadyLiked = post.likes.includes(actor);
+    if (alreadyLiked) {
+      post.likes = post.likes.filter(handle => handle !== actor);
+    } else {
+      post.likes.push(actor);
+    }
+    await post.save();
+
+    if (!alreadyLiked) {
+      await createNotification({
+        recipient: post.user,
+        actor,
+        type: 'like',
+        postId: post._id,
+        preview: post.text
+      });
+    }
+
+    res.status(200).json(post);
+  } catch (error) {
+    console.error('Error toggling post reaction:', error);
+    res.status(500).json({ message: 'Failed to update reaction.' });
   }
 });
 
@@ -329,6 +523,7 @@ app.post('/api/posts', async (req, res) => {
 app.post('/api/posts/:id/reply', async (req, res) => {
   try {
     const { user, avatar, text } = req.body;
+    if (!text || !String(text).trim()) return res.status(400).json({ message: 'Reply cannot be empty.' });
     
     // 1. Find the post by the ID in the URL
     const post = await Post.findById(req.params.id);
@@ -341,11 +536,21 @@ app.post('/api/posts/:id/reply', async (req, res) => {
     post.replies.push({ 
       user, 
       avatar: avatar || '', 
-      text 
+      text: String(text).trim()
     });
 
     // 3. Save it to the database
     await post.save();
+
+    await createNotification({
+      recipient: post.user,
+      actor: user,
+      actorAvatar: avatar || '',
+      type: 'reply',
+      postId: post._id,
+      replyIndex: post.replies.length - 1,
+      preview: String(text).trim()
+    });
 
     // 4. Send the FULL updated post back to React so it can re-render the UI
     res.status(200).json(post);
@@ -424,6 +629,49 @@ app.delete('/api/chika/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// POLL GROUPS (FILTER ICONS) ROUTES - NEW!
+// ==========================================
+app.get('/api/poll-groups', async (req, res) => {
+  try {
+    const groups = await PollGroup.find().sort({ createdAt: 1 });
+    res.status(200).json(groups.map(group => ({
+      ...group.toObject(),
+      imageUrl: normalizeImageUrl(group.imageUrl)
+    })));
+  } catch (error) {
+    console.error('Error fetching poll groups:', error);
+    res.status(500).json({ error: 'Failed to fetch poll groups' });
+  }
+});
+
+app.post('/api/poll-groups', upload.single('image'), async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: 'Group name is required.' });
+    
+    const newGroup = await PollGroup.create({
+      name,
+      imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : '')
+    });
+    res.status(201).json({ ...newGroup.toObject(), imageUrl: normalizeImageUrl(newGroup.imageUrl) });
+  } catch (error) {
+    console.error('Error creating poll group:', error);
+    res.status(500).json({ error: 'Failed to create group' });
+  }
+});
+
+app.delete('/api/poll-groups/:id', async (req, res) => {
+  try {
+    await PollGroup.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Group deleted.' });
+  } catch (error) {
+    console.error('Error deleting poll group:', error);
+    res.status(500).json({ error: 'Failed to delete group' });
+  }
+});
+// ==========================================
+
 // Polls API Routes
 app.get('/api/polls', async (req, res) => {
   try {
@@ -441,16 +689,24 @@ app.get('/api/polls', async (req, res) => {
 
 app.post('/api/polls', upload.single('image'), async (req, res) => {
   try {
-    const { title, fromDate, toDate } = req.body;
+    // 1. Extract the new fields from req.body
+    const { title, fromDate, toDate, group, type, description } = req.body;
+    
     if (!title || !fromDate || !toDate) {
       return res.status(400).json({ message: 'Title, fromDate, and toDate are required.' });
     }
+    
+    // 2. Save the new fields to MongoDB
     const poll = await Poll.create({
       title,
+      group: group || '',     // Default to PPMA if left empty
+      type: type || '',      // Default to Minor if left empty
+      description: description || '',
       imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
       fromDate: new Date(fromDate),
       toDate: new Date(toDate)
     });
+    
     res.status(201).json({
       ...poll.toObject(),
       imageUrl: normalizeImageUrl(poll.imageUrl),
@@ -468,13 +724,26 @@ app.put('/api/polls/:id', upload.single('image'), async (req, res) => {
     if (!poll) {
       return res.status(404).json({ message: 'Poll not found.' });
     }
+    
+    // 3. Update existing fields if they were changed
     poll.title = req.body.title || poll.title;
+    poll.group = req.body.group || poll.group;
+    poll.type = req.body.type || poll.type;
+    
+    // Check undefined so we can save empty strings if the admin clears the description
+    if (req.body.description !== undefined) {
+      poll.description = req.body.description;
+    }
+    
     poll.fromDate = req.body.fromDate ? new Date(req.body.fromDate) : poll.fromDate;
     poll.toDate = req.body.toDate ? new Date(req.body.toDate) : poll.toDate;
+    
     if (req.file) {
       poll.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
     }
+    
     await poll.save();
+    
     res.status(200).json({
       ...poll.toObject(),
       imageUrl: normalizeImageUrl(poll.imageUrl),
@@ -499,21 +768,14 @@ app.delete('/api/polls/:id', async (req, res) => {
   }
 });
 
+
+
 // Rankings API Routes
 app.get('/api/rankings', async (req, res) => {
   try {
+    await updateRankingPositions(); // Auto-sort by category before sending
     const rankings = await Ranking.find().sort({ voteCount: -1, createdAt: 1 });
-    
-    const updatedRankings = await Promise.all(rankings.map(async (item, index) => {
-      const newPos = index + 1;
-      if (item.position !== newPos) {
-        item.position = newPos;
-        await item.save();
-      }
-      return serializeImage(item.toObject());
-    }));
-
-    res.status(200).json(updatedRankings);
+    res.status(200).json(rankings.map(item => serializeImage(item.toObject())));
   } catch (error) {
     console.error('Error fetching rankings:', error);
     res.status(500).json({ error: 'Failed to fetch rankings' });
@@ -521,43 +783,24 @@ app.get('/api/rankings', async (req, res) => {
 });
 
 app.post('/api/rankings', upload.single('image'), async (req, res) => {
-try {
-    // Extract the new variable from req.body
-    const { name, position, youtubeUrl, youtubeStartTime } = req.body; 
-    
-    if (!name) {
-      return res.status(400).json({ message: 'Ranking name is required.' });
-    }
-    const ranking = await Ranking.create({
-      name,
-      youtubeUrl: youtubeUrl || '',
-      youtubeStartTime: Number(youtubeStartTime) || 0, // <-- ADD THIS LINE
-      imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
-      voteCount: 0,
-      position: Number(position || 1)
-    });
-    res.status(201).json(serializeImage(ranking.toObject()));
-  } catch (error) {
-    console.error('Error creating ranking:', error);
-    res.status(500).json({ error: 'Failed to create ranking' });
-  }
-});
-
-app.post('/api/rankings', upload.single('image'), async (req, res) => {
   try {
-    // 1. Extract youtubeUrl from the request body
-    const { name, position, youtubeUrl } = req.body; 
+    const { name, position, youtubeUrl, youtubeStartTime, group, category } = req.body; 
     
     if (!name) {
       return res.status(400).json({ message: 'Ranking name is required.' });
     }
     const ranking = await Ranking.create({
       name,
-      youtubeUrl: youtubeUrl || '', // 2. Save it to the database
+      group: group || '',             // <-- CAPTURE GROUP
+      category: category || '',       // <-- CAPTURE CATEGORY
+      youtubeUrl: youtubeUrl || '',
+      youtubeStartTime: Number(youtubeStartTime) || 0, 
       imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
       voteCount: 0,
       position: Number(position || 1)
     });
+    
+    await updateRankingPositions(); // Recalculate ranks
     res.status(201).json(serializeImage(ranking.toObject()));
   } catch (error) {
     console.error('Error creating ranking:', error);
@@ -603,12 +846,7 @@ app.post('/api/rankings/:id/vote', async (req, res) => {
     ranking.voteCount = Number(ranking.voteCount || 0) + cost;
     await ranking.save();
 
-    // Re-sort all rankings and update positions automatically based on votes
-    const allRankings = await Ranking.find().sort({ voteCount: -1, createdAt: 1 });
-    for (let i = 0; i < allRankings.length; i++) {
-      allRankings[i].position = i + 1;
-      await allRankings[i].save();
-    }
+    await updateRankingPositions(); // Recalculate ranks safely within categories
 
     const updatedTarget = await Ranking.findById(req.params.id);
 
@@ -631,26 +869,34 @@ app.put('/api/rankings/:id', upload.single('image'), async (req, res) => {
     }
     
     ranking.name = req.body.name || ranking.name;
-    ranking.position = Number(req.body.position || ranking.position || 1);
     
-    // 3. Update the youtubeUrl if a new one is provided
-if (req.body.youtubeUrl !== undefined) {
-      ranking.youtubeUrl = req.body.youtubeUrl;
-    }
-    
-    // --- ADD THIS BLOCK ---
-    if (req.body.youtubeStartTime !== undefined) {
-      ranking.youtubeStartTime = Number(req.body.youtubeStartTime) || 0;
-    }
+    // Update group and category if provided
+    if (req.body.group !== undefined) ranking.group = req.body.group;
+    if (req.body.category !== undefined) ranking.category = req.body.category;
+    if (req.body.youtubeUrl !== undefined) ranking.youtubeUrl = req.body.youtubeUrl;
+    if (req.body.youtubeStartTime !== undefined) ranking.youtubeStartTime = Number(req.body.youtubeStartTime) || 0;
 
     if (req.file) {
       ranking.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
     }
     await ranking.save();
+    await updateRankingPositions(); // Recalculate ranks
+
     res.status(200).json(serializeImage(ranking.toObject()));
   } catch (error) {
     console.error('Error updating ranking:', error);
     res.status(500).json({ error: 'Failed to update ranking' });
+  }
+});
+
+app.delete('/api/rankings/:id', async (req, res) => {
+  try {
+    await Ranking.findByIdAndDelete(req.params.id);
+    await updateRankingPositions();
+    res.status(200).json({ message: 'Ranking deleted.' });
+  } catch (error) {
+    console.error('Error deleting ranking:', error);
+    res.status(500).json({ error: 'Failed to delete ranking' });
   }
 });
 // Authentication Routes
@@ -783,6 +1029,8 @@ res.status(200).json({
 const videoSchema = new mongoose.Schema({
   title: { type: String, required: true },
   subtitle: { type: String, default: '' },
+  group: { type: String, default: '' },
+  platform: { type: String, enum: ['YouTube', 'Facebook', 'X', 'TikTok'], default: 'YouTube' },
   imageUrl: { type: String, default: '' },
   youtubeUrl: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
@@ -792,7 +1040,18 @@ const Video = mongoose.model('Video', videoSchema);
 // --- YOUTUBE VIDEO API ROUTES ---
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await Video.find().sort({ createdAt: -1 });
+    const platform = req.query.platform || 'YouTube';
+    const allowedPlatforms = ['YouTube', 'Facebook', 'X', 'TikTok'];
+    if (platform !== 'all' && !allowedPlatforms.includes(platform)) {
+      return res.status(400).json({ error: 'Invalid video platform' });
+    }
+
+    const filter = platform === 'all'
+      ? {}
+      : platform === 'YouTube'
+        ? { $or: [{ platform: 'YouTube' }, { platform: { $exists: false } }, { platform: '' }] }
+        : { platform };
+    const videos = await Video.find(filter).sort({ createdAt: -1 });
     res.status(200).json(videos);
   } catch (error) {
     console.error('Error fetching videos:', error);
@@ -802,10 +1061,12 @@ app.get('/api/videos', async (req, res) => {
 
 app.post('/api/videos', upload.single('image'), async (req, res) => {
   try {
-    const { title, subtitle, youtubeUrl } = req.body;
+    const { title, subtitle, group, platform, youtubeUrl } = req.body;
     const newVideo = await Video.create({
       title,
       subtitle: subtitle || '',
+      group: group || '',
+      platform: platform || 'YouTube',
       youtubeUrl: youtubeUrl || '',
       imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
     });
@@ -813,6 +1074,26 @@ app.post('/api/videos', upload.single('image'), async (req, res) => {
   } catch (error) {
     console.error('Error creating video:', error);
     res.status(500).json({ error: 'Failed to create video' });
+  }
+});
+
+app.put('/api/videos/:id', upload.single('image'), async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+    if (!video) return res.status(404).json({ message: 'Video not found.' });
+
+    video.title = req.body.title ?? video.title;
+    video.subtitle = req.body.subtitle ?? video.subtitle;
+    video.group = req.body.group ?? video.group;
+    video.platform = req.body.platform ?? video.platform;
+    video.youtubeUrl = req.body.youtubeUrl ?? video.youtubeUrl;
+    if (req.file) video.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
+
+    await video.save();
+    res.status(200).json(video);
+  } catch (error) {
+    console.error('Error updating video:', error);
+    res.status(500).json({ error: 'Failed to update video' });
   }
 });
 
@@ -961,6 +1242,40 @@ app.get('/api/reports', async (req, res) => {
   } catch (error) {
     console.error('Error fetching reports:', error);
     res.status(500).json({ error: 'Failed to fetch reports' });
+  }
+});
+
+// ==========================================
+// SYSTEM SETTINGS (FEATURED HOMEPAGE RANKING)
+// ==========================================
+const settingsSchema = new mongoose.Schema({
+  featuredGroup: { type: String, default: '' },
+  featuredCategory: { type: String, default: '' }
+});
+const Settings = mongoose.model('Settings', settingsSchema);
+
+app.get('/api/settings', async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) settings = await Settings.create({});
+    res.status(200).json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+app.put('/api/settings', async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) settings = await Settings.create({});
+    
+    settings.featuredGroup = req.body.featuredGroup || '';
+    settings.featuredCategory = req.body.featuredCategory || '';
+    
+    await settings.save();
+    res.status(200).json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update settings' });
   }
 });
 

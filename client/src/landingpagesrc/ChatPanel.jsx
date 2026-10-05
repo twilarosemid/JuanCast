@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './css/ChatPanel.css';
 
@@ -16,12 +16,13 @@ const timeAgo = (dateString) => {
   return `${diffInDays} days ago`;
 };
 
-const ChatPanel = ({ onPostRequested }) => {
+const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) => {
   const [posts, setPosts] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [replyInputs, setReplyInputs] = useState({});
+  const focusedTargetRef = useRef(null);
 
   useEffect(() => {
     const syncLoggedInUser = async () => {
@@ -69,6 +70,28 @@ const ChatPanel = ({ onPostRequested }) => {
       window.removeEventListener('storage', syncLoggedInUser);
     };
   }, []);
+
+  useEffect(() => {
+    if (!focusPostId || !posts.some(post => String(post._id) === String(focusPostId))) return;
+
+    if (focusReplyIndex !== null && focusReplyIndex !== undefined && !expandedComments[focusPostId]) {
+      setExpandedComments(current => ({ ...current, [focusPostId]: true }));
+      return;
+    }
+
+    const targetKey = `${focusKey}:${focusPostId}:${focusReplyIndex ?? 'post'}`;
+    if (focusedTargetRef.current === targetKey) return;
+
+    const targetId = focusReplyIndex !== null && focusReplyIndex !== undefined
+      ? `community-reply-${focusPostId}-${focusReplyIndex}`
+      : `community-post-${focusPostId}`;
+    const target = document.getElementById(targetId) || document.getElementById(`community-post-${focusPostId}`);
+    if (!target) return;
+
+    focusedTargetRef.current = targetKey;
+    const frameId = requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    return () => cancelAnimationFrame(frameId);
+  }, [posts, focusPostId, focusReplyIndex, focusKey, expandedComments]);
 
   const chatUsername = loggedInUser ? `@${loggedInUser.username}` : "Guest";
   const userAvatar = loggedInUser?.avatar || "";
@@ -165,7 +188,7 @@ const ChatPanel = ({ onPostRequested }) => {
           const displayAvatar = post.avatar || (post.user === chatUsername || post.user === (loggedInUser?.username ? `@${loggedInUser.username}` : '') ? loggedInUser?.avatar : '') || '';
 
           return (
-            <div key={post._id} className="chat-item card-shadow" style={{ flexDirection: 'column' }}>
+            <div id={`community-post-${post._id}`} key={post._id} className="chat-item card-shadow" style={{ flexDirection: 'column' }}>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <div className="chat-avatar-placeholder" style={{
                   width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e0e0e0',
@@ -215,7 +238,7 @@ const ChatPanel = ({ onPostRequested }) => {
                     const replyAvatar = reply.avatar || (reply.user === chatUsername ? userAvatar : '') || '';
 
                     return (
-                    <div key={idx} className="reply-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div id={`community-reply-${post._id}-${idx}`} key={idx} className="reply-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                       <div style={{
                         width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#e0e0e0',
                         overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'

@@ -6,14 +6,19 @@ import HomeCenterView from './landingpagesrc/centerViews/HomeCenterView';
 import ProfileLayout from './profilepagesrc/ProfileLayout';
 import Profile from './profilepagesrc/Profile'; 
 import EditProfile from './profilepagesrc/EditProfile';
-import ReportIssue from './components/settings/ReportIssue';
 
-// Make sure your import path matches where you put the file!
+import AllPolls from './pollpagesrc/AllPolls';
+import PollDetail from './pollpagesrc/PollDetail';
+import AllVideos from './YoutubeContent/AllVideos'; 
+import CommunityPage from './landingpagesrc/CommunityPage';
+import MarketPage from './landingpagesrc/MarketPage';
+
 import Settings from './components/settings/Settings'; 
 import TermsAndConditions from './components/settings/TermsAndConditions';
 import PrivacyPolicy from './components/settings/PrivacyPolicy';
 import ShareJuancast from './components/settings/ShareJuancast';
 import FAQ from './components/settings/FAQ';
+import ReportIssue from './components/settings/ReportIssue';
 
 import Login from './Login';
 import SignUp from './SignUp';
@@ -26,9 +31,17 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* --- LANDING SECTION (Navbar & Welcome Banner live here) --- */}
+        {/* --- LANDING SECTION (Navbar, Chat & Chika live here) --- */}
         <Route path="/" element={<LandingLayout />}>
           <Route index element={<HomeCenterView />} />
+          
+          <Route path="polls" element={<AllPolls />} />
+          <Route path="polls/:id" element={<PollDetail />} />
+          <Route path="videos" element={<AllVideos />} />
+          <Route path="community" element={<CommunityPage />} />
+          <Route path="market" element={<MarketPage />} />
+          
+          {/* Settings Routes */}
           <Route path="settings" element={<Settings />} />
           <Route path="settings/terms" element={<TermsAndConditions />} />
           <Route path="settings/privacy" element={<PrivacyPolicy />} />
@@ -46,7 +59,7 @@ function App() {
           <Route index element={<Profile />} />
         </Route>
 
-        {/* STANDALONE ROUTES (Check carefully to make sure /settings is NOT down here) */}
+        {/* --- STANDALONE ROUTES (No sidebars) --- */}
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/signup" element={<SignUp />} />

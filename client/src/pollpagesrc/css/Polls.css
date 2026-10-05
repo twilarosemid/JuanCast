@@ -1,0 +1,429 @@
+/* --- AllPolls.jsx Styles --- */
+.polls-page-wrapper {
+  display: flex;
+  gap: 30px;
+  padding: 20px 0; /* Adjusted padding to align with edges */
+  width: 100%;
+  max-width: 100%; /* Removed the 1400px limit */
+  margin: 0;       /* Removed the auto centering */
+}
+
+.polls-sidebar {
+  width: 280px; /* This naturally matches your typical Chat panel width! */
+  flex-shrink: 0;
+}
+
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 20px;
+  padding: 5px 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.polls-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.polls-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.search-icon {
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.polls-filter-select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-weight: bold;
+  color: #1e3a8a;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 0 8px 8px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.poll-group-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.poll-group-filter {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  transition: none;
+}
+
+.poll-group-filter:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+}
+
+.poll-group-filter.active {
+  background: #fff;
+  border-color: #1e3a8a;
+  color: #1e3a8a;
+}
+
+.polls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.poll-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.poll-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+.poll-card-image {
+  height: 140px;
+  background-size: cover;
+  background-position: center;
+  background-color: #0f172a;
+}
+
+.poll-card-info {
+  padding: 15px;
+}
+
+.poll-card-title {
+  margin: 0 0 5px 0;
+  font-size: 15px;
+  color: #1e293b;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.poll-card-date {
+  margin: 0 0 10px 0;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.poll-card-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.tag-group {
+  color: #1e3a8a;
+}
+
+.tag-type {
+  color: #f59e0b;
+}
+
+/* --- PollDetail.jsx Styles --- */
+.poll-detail-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.poll-detail-banner {
+  width: 100%;
+  height: 350px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  background-color: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Stripped the blue background, changed to white card with dark text */
+.poll-detail-info-box {
+  background-color: #ffffff;
+  color: #1e293b; 
+  border-radius: 16px;
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Made the timer bar blend cleanly into the white card */
+.poll-timer-bar {
+  background-color: #ffffff;
+  color: #64748b;
+  text-align: center;
+  padding: 16px 12px;
+  font-weight: 800;
+  font-size: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.poll-info-content {
+  padding: 24px;
+}
+
+.poll-title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.poll-dates, .poll-type {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.poll-description {
+  margin: 16px 0 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.poll-artist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.artist-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  color: #1e293b;
+  font-weight: bold;
+  padding: 12px 20px;
+  border-radius: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.artist-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.empty-artists {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  font-weight: bold;
+}
+
+.artist-rank {
+  font-size: 18px;
+  width: 20px;
+  color: #94a3b8;
+}
+
+.artist-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+
+.artist-name {
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.artist-spacer {
+  flex-grow: 1;
+}
+
+.artist-votes {
+  font-size: 16px;
+  color: #005ce6; 
+}
+
+.artist-vote-btn {
+  background: transparent; 
+  border: none;
+  color: #93c5fd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artist-vote-btn:hover {
+  transform: scale(1.1);
+  color: #005ce6;
+}
+
+.vote-category-logo {
+  width: 90%; /* Decreased from 100% */
+  height: 90%; /* Decreased from 100% */
+  object-fit: contain; /* Ensures the whole logo stays visible */
+  transition: transform 0.2s ease; /* Smooth hover transition */
+}
+
+.vote-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.vote-modal-content {
+  width: min(100%, 440px);
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.24);
+}
+
+.vote-modal-title {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.vote-modal-subtitle {
+  margin: 0 0 20px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.vote-modal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.vote-modal-label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vote-modal-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #1e293b;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.vote-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.vote-modal-cancel-btn,
+.vote-modal-confirm-btn,
+.feedback-btn {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vote-modal-cancel-btn {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+.vote-modal-confirm-btn,
+.feedback-btn {
+  background: #0056d2;
+  color: #fff;
+}
+
+.feedback-level {
+  z-index: 10001;
+}
+
+.feedback-icon {
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+
+.feedback-title.success {
+  color: #15803d;
+}
+
+.feedback-title.error {
+  color: #b91c1c;
+}
+
+.feedback-message {
+  margin: 12px 0 20px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.feedback-btn {
+  display: block;
+  margin-left: auto;
+}

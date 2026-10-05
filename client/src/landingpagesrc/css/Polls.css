@@ -1,6 +1,6 @@
 .polls-container {
   width: 100%;
-  min-height: 280px;
+  min-height: 320px; 
   overflow: hidden;
   position: relative;
   margin: 12px 0 0;
@@ -10,7 +10,7 @@
 
 .polls-track {
   position: relative;
-  height: 250px;
+  height: 290px; 
   width: 100%;
   perspective: 1200px;
 }
@@ -20,14 +20,13 @@
   left: 50%;
   top: 0;
   width: 220px;
-  height: 220px;
+  height: 240px; /* Reduced to remove dead space */
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid rgba(15, 23, 42, 0.06);
   cursor: pointer;
   overflow: hidden;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
-  /* Filter and Opacity are now handled dynamically in React */
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease, filter 0.5s ease, box-shadow 0.5s ease;
   will-change: transform, opacity, filter;
 }
@@ -37,7 +36,7 @@
 }
 
 .poll-vcard-image {
-  height: 120px;
+  height: 130px; /* Made image slightly taller to reduce bottom white space */
   background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
@@ -46,12 +45,16 @@
   justify-content: center;
   color: #fff;
   font-weight: bold;
-  border-bottom: 3px solid #0072ff;
 }
 
 .poll-vcard-content {
   padding: 12px 15px;
-  text-align: left;
+  text-align: center; /* Centers the text */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers the flex layout */
+  height: calc(100% - 130px);
+  box-sizing: border-box;
 }
 
 .poll-vcard-title {
@@ -69,25 +72,57 @@
 }
 
 /* ==========================================================
-   DESKTOP / WIDE SCREEN SCALING (Removes empty side spaces)
+   FOOTER (Moved OUTSIDE of media query so it works everywhere)
+   ========================================================== */
+.poll-vcard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto; 
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  width: 100%; 
+}
+
+.poll-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px; 
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.poll-badge-icon {
+  width: 16px; 
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ==========================================================
+   DESKTOP / WIDE SCREEN SCALING 
    ========================================================== */
 @media (min-width: 1400px) {
   .polls-container {
-    min-height: 340px;
+    min-height: 330px; 
   }
   
   .polls-track {
-    height: 310px;
+    height: 300px; 
   }
 
-  /* Automatically scales up card dimensions on large monitors */
   .poll-vcard {
-    width: 290px;
-    height: 290px;
+    width: 350px;
+    height: 270px; /* Drastically reduced desktop height to kill dead space */
   }
 
   .poll-vcard-image {
-    height: 165px;
+    height: 155px; /* Added missing scaling for image to prevent gaps! */
+  }
+
+  .poll-vcard-content {
+    height: calc(100% - 155px); /* Calculates perfectly against the new image height */
   }
 
   .poll-vcard-title {
@@ -96,5 +131,14 @@
 
   .poll-vcard-date {
     font-size: 13px;
+  }
+
+  .poll-badge {
+    font-size: 13px;
+  }
+
+  .poll-badge-icon {
+    width: 20px;
+    height: 20px;
   }
 }

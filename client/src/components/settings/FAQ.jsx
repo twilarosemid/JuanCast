@@ -45,7 +45,7 @@ const FAQ = () => {
             <li style={{ marginBottom: '5px' }}>By watching ads through the JuanCast Store. Select Store {'>'} Ads {'>'} Select from the 4 boxes to opt-in. There is a 1-minute timer for every ads watched. You will be given 30 Stars for every ad that you opted in.</li>
             <li>By purchasing in the JuanCast Store. Select Store{'>'} Stars. There are packages to select from with the equivalent amount in peso. The stars will automatically be credited to your account.</li>
           </ol>
-          <p>A: Suns are acquired by converting 200 Stars for 1 Sun in the JuanCast Store. Select Store {'>'} Suns. There you can convert your existing stars into suns.</p>
+          <p>A: Convert 1 Sun into 1,800 Stars in the JuanCast Market. Select Market {'>'} Suns to convert your existing balance.</p>
         </>
       )
     }

@@ -1,103 +1,89 @@
 import ReactDOM from 'react-dom';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../css/Rankings.css'; 
 
 const nFormatter = (value = 0) => new Intl.NumberFormat('en-US').format(Number(value || 0));
 
 const RankingsView = () => {
   const [rankings, setRankings] = useState([]);
+  const [pollsList, setPollsList] = useState([]); 
+  
+  // Driven entirely by Admin Dashboard settings
+  const [activeGroup, setActiveGroup] = useState('');
+  const [activeCategory, setActiveCategory] = useState('');
+  
+  const [featuredPollId, setFeaturedPollId] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // Voting Modal State
-  const [voteModalOpen, setVoteModalOpen] = useState(false);
-  const [selectedRanking, setSelectedRanking] = useState(null);
-  const [voteAmount, setVoteAmount] = useState(1);
-
-  // Custom Feedback/Success Modal State
-  const [feedback, setFeedback] = useState({ isOpen: false, message: '', type: 'success' });
-
-  // --- FIXED: Pure Hover State ---
   const [hoveredRankId, setHoveredRankId] = useState(null);
 
-  useEffect(() => {
-    const loadRankings = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/rankings');
-        if (!response.ok) throw new Error('Failed to load rankings');
+  const navigate = useNavigate();
 
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          setRankings(data);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [rankingsRes, settingsRes, pollsRes] = await Promise.all([
+          fetch('http://localhost:5000/api/rankings'),
+          fetch('http://localhost:5000/api/settings'),
+          fetch('http://localhost:5000/api/polls')
+        ]);
+
+        if (rankingsRes.ok) {
+          const rankingsData = await rankingsRes.json();
+          setRankings(rankingsData);
+        }
+
+        let category = '';
+        let group = '';
+
+        if (settingsRes.ok) {
+          const rawSettings = await settingsRes.json();
+          
+          // THE FIX: Safely handles the response whether the API returns an Array or an Object
+          const settingsData = Array.isArray(rawSettings) ? (rawSettings[0] || {}) : (rawSettings || {});
+          
+          group = settingsData.featuredGroup || '';
+          category = settingsData.featuredCategory || '';
+          
+          setActiveGroup(group);
+          setActiveCategory(category);
+        }
+
+        if (pollsRes.ok) {
+          const pollsData = await pollsRes.json();
+          
+          if (Array.isArray(pollsData)) {
+            setPollsList(pollsData);
+            
+            const safeCategory = (category || '').trim().toLowerCase();
+            const safeGroup = (group || '').trim().toLowerCase();
+
+            // 1. Strict Match
+            let matchedPoll = pollsData.find(p => 
+              (p.title || '').trim().toLowerCase() === safeCategory && 
+              (p.group || '').trim().toLowerCase() === safeGroup
+            );
+
+            // 2. Semi-Strict Match (Ignores Group typo)
+            if (!matchedPoll) {
+              matchedPoll = pollsData.find(p => (p.title || '').trim().toLowerCase() === safeCategory);
+            }
+
+            if (matchedPoll) {
+              setFeaturedPollId(matchedPoll._id || matchedPoll.id);
+            }
+          }
         }
       } catch (error) {
-        console.error('Error fetching rankings:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadRankings();
+    loadData();
   }, []);
 
-  const handleOpenVoteModal = (ranking) => {
-    const currentUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
-    if (!currentUser || !currentUser.email) {
-      setFeedback({ isOpen: true, message: 'You must be logged in to vote.', type: 'error' });
-      return;
-    }
-    
-    setSelectedRanking(ranking);
-    setVoteAmount(1);
-    setVoteModalOpen(true);
-  };
-
-  const handleConfirmVote = async () => {
-    if (!selectedRanking) return;
-    if (voteAmount <= 0) {
-      setFeedback({ isOpen: true, message: 'Please enter a valid vote amount.', type: 'error' });
-      return;
-    }
-
-    try {
-      const currentUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
-      
-      const response = await fetch(`http://localhost:5000/api/rankings/${selectedRanking._id || selectedRanking.id}/vote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: currentUser.email, currencyType: 'stars', cost: voteAmount })
-      });
-
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to cast vote');
-      }
-
-      const refreshRes = await fetch('http://localhost:5000/api/rankings');
-      if (refreshRes.ok) {
-        const freshData = await refreshRes.json();
-        setRankings(freshData);
-      }
-
-      currentUser.stars = result.remainingStars;
-      if (result.remainingSuns !== undefined) currentUser.suns = result.remainingSuns;
-      localStorage.setItem('juancast_user', JSON.stringify(currentUser));
-      window.dispatchEvent(new Event('juancast-user-updated'));
-
-      setFeedback({ 
-        isOpen: true, 
-        message: `Successfully voted with ${voteAmount} Star(s) ⭐!\n\nRemaining Stars: ${result.remainingStars}`, 
-        type: 'success' 
-      });
-      
-      setVoteModalOpen(false);
-
-    } catch (error) {
-      console.error('Error casting vote:', error);
-      setFeedback({ isOpen: true, message: error.message || 'Error casting vote.', type: 'error' });
-    }
-  };
-
-  // --- FIXED: Requires mute=1 and controls=0 for hover auto-play to work ---
   const getYouTubeEmbedUrl = (url, startTime = 0) => {
     if (!url) return null;
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/))([^&?]*)/);
@@ -107,8 +93,19 @@ const RankingsView = () => {
     return null;
   };
 
-  // 1. Sort by votes
-  const sortedRankings = [...rankings].sort((a, b) => {
+  const filteredRankings = rankings.filter(artist => {
+    const safeArtistGroup = (artist.group || '').trim().toLowerCase();
+    const safeArtistCategory = (artist.category || '').trim().toLowerCase();
+    const safeActiveGroup = (activeGroup || '').trim().toLowerCase();
+    const safeActiveCategory = (activeCategory || '').trim().toLowerCase();
+
+    const matchGroup = activeGroup ? safeArtistGroup === safeActiveGroup : true;
+    const matchCategory = activeCategory ? safeArtistCategory === safeActiveCategory : true;
+    
+    return matchGroup && matchCategory;
+  });
+
+  const sortedRankings = [...filteredRankings].sort((a, b) => {
     const votesA = Number(a.voteCount || 0);
     const votesB = Number(b.voteCount || 0);
     if (votesA !== votesB) {
@@ -117,13 +114,11 @@ const RankingsView = () => {
     return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
   });
 
-  // 2. SLICE TO TOP 3 ONLY BEFORE MAPPING POSITIONS
   const rankedWithPositions = sortedRankings.slice(0, 3).map((item, idx) => ({
     ...item,
     dynamicPosition: idx + 1
   }));
 
-  // 3. Arrangement Logic strictly limits to whatever is in rankedWithPositions (Max 3)
   let arrangedRankings = [];
   let containerLayoutClass = 'podium-three';
 
@@ -138,17 +133,52 @@ const RankingsView = () => {
     containerLayoutClass = 'podium-three';
   }
 
+  // --- Dynamic Title Display ---
+  // Will show the exact category set by admin, or "Loading..." while fetching
+  const displayTitle = activeCategory || (loading ? 'Loading...' : 'No Category Selected');
+
+  // --- BULLETPROOF ROUTING LOGIC ---
+  const handleCastVoteClick = () => {
+    const currentUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
+    if (!currentUser?.email) {
+      navigate('/login');
+      return;
+    }
+
+    if (featuredPollId) {
+      navigate(`/polls/${featuredPollId}`);
+      return;
+    }
+
+    if (pollsList.length > 0) {
+      const fuzzyMatch = pollsList.find(p => 
+        (p.title || '').toLowerCase().includes(activeCategory.toLowerCase()) || 
+        activeCategory.toLowerCase().includes((p.title || '').toLowerCase())
+      );
+      
+      if (fuzzyMatch) {
+        navigate(`/polls/${fuzzyMatch._id || fuzzyMatch.id}`);
+        return;
+      }
+      navigate(`/polls/${pollsList[0]._id || pollsList[0].id}`);
+    } else {
+      navigate('/polls');
+    }
+  };
+
   return (
     <>
-      <div className="section-header rankings-header">
-        <h2>Rankings</h2>
-        <a href="#" className="view-all-link">View All</a>
+      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '55px', marginBottom: '40px' }}>
+        <h2 style={{ margin: 0, fontSize: '30px', color: '#000000', textTransform: 'uppercase', fontWeight: '900', letterSpacing: '1.5px', textAlign: 'center' }}>
+          {displayTitle}
+        </h2>
       </div>
 
+      {/* MAIN PODIUM VIEW */}
       {loading ? (
         <div className="rankings-empty-state">Loading rankings...</div>
       ) : rankedWithPositions.length === 0 ? (
-        <div className="rankings-empty-state">No rankings available yet. Add some from the Admin Dashboard!</div>
+        <div className="rankings-empty-state">No artists available for this category yet.</div>
       ) : (
         <div className={`rankings-container ${containerLayoutClass}`}>
           {arrangedRankings.map((item, index) => {
@@ -161,7 +191,6 @@ const RankingsView = () => {
               <div key={itemId} className={`ranking-card ${cardClass}`}>
                 <div className="ranking-medal">{medal}</div>
                 
-                {/* --- FIXED: Restored Hover Trigger --- */}
                 <div
                   className="ranking-img-placeholder"
                   onMouseEnter={() => setHoveredRankId(itemId)}
@@ -173,7 +202,6 @@ const RankingsView = () => {
                   {!item.imageUrl && <span>Image</span>}
                 </div>
                 
-                {/* --- FIXED: Restored Hover Portal Logic --- */}
                 {hoveredRankId === itemId && item.youtubeUrl && ReactDOM.createPortal(
                   <div className="youtube-hover-scrim">
                     <div className="youtube-video-container">
@@ -191,63 +219,17 @@ const RankingsView = () => {
                 <div className="ranking-info">
                   <h3 className="ranking-title">{item.name}</h3>
                   <div className="ranking-votes">{nFormatter(item.voteCount)}</div>
-                  <button className="cast-vote-btn" onClick={() => handleOpenVoteModal(item)}>CAST VOTE</button>
+                  
+                  <button 
+                    className="cast-vote-btn" 
+                    onClick={handleCastVoteClick}
+                  >
+                    CAST VOTE
+                  </button>
                 </div>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* --- VOTING INPUT MODAL UI --- */}
-      {voteModalOpen && (
-        <div className="vote-modal-overlay" onClick={() => setVoteModalOpen(false)}>
-          <div className="vote-modal-content card-shadow" onClick={(e) => e.stopPropagation()}>
-            <h3 className="vote-modal-title">Cast Your Vote</h3>
-            <p className="vote-modal-subtitle">
-              Voting for: <strong>{selectedRanking?.name}</strong>
-            </p>
-
-            <div className="vote-modal-form-group">
-              <label className="vote-modal-label">Number of Stars to use</label>
-              <input 
-                type="number" 
-                min="1" 
-                value={voteAmount} 
-                onChange={(e) => setVoteAmount(Number(e.target.value))}
-                className="vote-modal-input"
-              />
-            </div>
-
-            <div className="vote-modal-actions">
-              <button className="vote-modal-cancel-btn" onClick={() => setVoteModalOpen(false)}>
-                Cancel
-              </button>
-              <button className="vote-modal-confirm-btn" onClick={handleConfirmVote}>
-                Confirm Vote
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- CUSTOM FEEDBACK/SUCCESS MODAL --- */}
-      {feedback.isOpen && (
-        <div className="vote-modal-overlay feedback-level" onClick={() => setFeedback({ ...feedback, isOpen: false })}>
-          <div className="vote-modal-content card-shadow" onClick={(e) => e.stopPropagation()}>
-            <div className="feedback-icon">
-              {feedback.type === 'success' ? '🎉' : '⚠'}
-            </div>
-            <h3 className={`vote-modal-title feedback-title ${feedback.type}`}>
-              {feedback.type === 'success' ? 'Success!' : 'Oops!'}
-            </h3>
-            <p className="feedback-message">
-              {feedback.message}
-            </p>
-            <button className="feedback-btn" onClick={() => setFeedback({ ...feedback, isOpen: false })}>
-              Got it
-            </button>
-          </div>
         </div>
       )}
     </>

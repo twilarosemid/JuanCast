@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { FaBolt, FaStar, FaSun, FaSyncAlt } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import ChatPanel from './ChatPanel';
 import ChikaPanel from './ChikaPanel';
@@ -14,6 +15,19 @@ const checkHasClaimedToday = (lastClaimDate) => {
   return lastDate === today;
 };
 
+const communitySections = [
+  { id: 'chat', label: 'Chat' },
+  { id: 'chika', label: 'Chika' },
+  { id: 'contents', label: 'Content' }
+];
+
+const marketSections = [
+  { id: 'stars', label: 'Stars', Icon: FaStar },
+  { id: 'suns', label: 'Suns', Icon: FaSun },
+  { id: 'spin', label: 'Spin', Icon: FaSyncAlt },
+  { id: 'powerups', label: 'Powerups', Icon: FaBolt }
+];
+
 const LandingLayout = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   
@@ -22,12 +36,18 @@ const LandingLayout = () => {
   const [triggerRefresh, setTriggerRefresh] = useState(null);
 
   const [isDailyOpen, setIsDailyOpen] = useState(false);
+  const [activeCommunitySection, setActiveCommunitySection] = useState('chat');
+  const [activeMarketSection, setActiveMarketSection] = useState('stars');
   
   const location = useLocation();
   const navigate = useNavigate();
 
-// --- HIDE SIDEBARS ON ALL SETTINGS PAGES ---
+  // --- HIDE SIDEBARS CONSTANTS ---
   const isSettingsPage = location.pathname.startsWith('/settings');
+  const isCommunityPage = location.pathname.startsWith('/community');
+  const isMarketPage = location.pathname.startsWith('/market');
+  const isFullWidthPage = ['/polls', '/videos'].some(path => location.pathname.startsWith(path));
+  const isCenterOnlyPage = isFullWidthPage || isCommunityPage || isMarketPage;
 
   useEffect(() => {
     const syncLoggedInUser = () => {
@@ -55,6 +75,10 @@ const LandingLayout = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
+
+  useEffect(() => {
+    if (location.state?.openPostId) setActiveCommunitySection('chat');
+  }, [location.key, location.state?.openPostId]);
 
   const chatUsername = loggedInUser ? `@${loggedInUser.username}` : "Guest";
 
@@ -87,10 +111,10 @@ const LandingLayout = () => {
     }
   };
 
+  // --- RESTORED CUSTOM REWARD LOGIC ---
   const handleClaimDailyReward = async (day, value, currency) => {
     if (!loggedInUser?.email) {
-      alert("Please log in to claim daily rewards.");
-      return;
+      return "Please log in to claim daily rewards."; 
     }
 
     try {
@@ -111,14 +135,14 @@ const LandingLayout = () => {
         setLoggedInUser(updatedUser); 
         window.dispatchEvent(new Event('juancast-user-updated'));
         
-        alert(`Successfully claimed Day ${day} rewards!`);
+        return true; // Triggers the celebratory pop-up in Daily.jsx
       } else {
         const errData = await response.json();
-        alert(errData.message || "Failed to claim reward.");
+        return errData.message || "Failed to claim reward.";
       }
     } catch (error) {
       console.error("Error claiming daily reward:", error);
-      alert("Server error. Please try again later.");
+      return "Server error. Please try again later.";
     }
   };
 
@@ -137,29 +161,73 @@ const LandingLayout = () => {
     >
       <div className={`landing-page-shell ${showModal || isDailyOpen ? 'modal-active' : ''}`} style={{ position: 'relative' }}>
         
-        {/* Overrides CSS Grid when on the Settings page so it centers perfectly */}
+{/* --- UPDATED GRID LOGIC --- */}
         <div 
           className="landing-grid" 
-          style={isSettingsPage ? { display: 'flex', justifyContent: 'center' } : {}}
+          style={
+            isSettingsPage ? { display: 'flex', justifyContent: 'center' } : 
+            isFullWidthPage ? { display: 'flex', width: '100%' } : 
+            {}
+          }
         >
           
-          {/* Conditionally render Left Panel */}
-          {!isSettingsPage && (
+          {/* Hide side panels on settings and browse pages */}
+          {!isSettingsPage && !isFullWidthPage && (
             <aside className="panel left-panel fixed-sidebar">
-              <ChatPanel onPostRequested={handleOpenModal} />
+              {isCommunityPage ? (
+                <nav className="community-section-nav" aria-label="Community sections">
+                  {communitySections.map(section => (
+                    <button
+                      key={section.id}
+                      type="button"
+                      className={`community-section-button${activeCommunitySection === section.id ? ' active' : ''}`}
+                      onClick={() => setActiveCommunitySection(section.id)}
+                    >
+                      {section.label}
+                    </button>
+                  ))}
+                </nav>
+              ) : isMarketPage ? (
+                <nav className="market-category-list" aria-label="Market categories">
+                  {marketSections.map(({ id, label, Icon }) => (
+                    <button
+                      type="button"
+                      key={id}
+                      className={`market-category${activeMarketSection === id ? ' active' : ''}`}
+                      onClick={() => setActiveMarketSection(id)}
+                    >
+                      <Icon aria-hidden="true" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </nav>
+              ) : (
+                <ChatPanel onPostRequested={handleOpenModal} />
+              )}
             </aside>
           )}
 
-          {/* Center View expands if sidebars are gone */}
+          {/* Settings is centered (800px). Browse pages use the full content width. */}
           <main 
             className="center-panel scrollable-center" 
-            style={isSettingsPage ? { width: '100%', maxWidth: '800px' } : {}}
+            style={
+              isSettingsPage ? { width: '100%', maxWidth: '800px' } : 
+              isFullWidthPage ? { width: '100%', maxWidth: '100%', flex: 1, padding: '0 20px' } : 
+              {}
+            }
           >
-            <Outlet />
+            <Outlet context={{
+              onPostRequested: handleOpenModal,
+              activeCommunitySection,
+              activeMarketSection,
+              loggedInUser,
+              openPostId: location.state?.openPostId,
+              openReplyIndex: location.state?.openReplyIndex,
+              focusKey: location.key
+            }} />
           </main>
 
-          {/* Conditionally render Right Panel */}
-          {!isSettingsPage && (
+          {!isSettingsPage && !isCenterOnlyPage && (
             <aside className="panel right-panel fixed-sidebar">
               <ChikaPanel />
             </aside>

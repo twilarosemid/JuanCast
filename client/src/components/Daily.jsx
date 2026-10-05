@@ -12,7 +12,6 @@ import STAR5 from '../assets/STAR5.png';
 import STAR6 from '../assets/STAR6.png';
 import STAR7 from '../assets/STAR7.png';
 
-// Rewards are kept original, wired with the 'STARS' currency tag for the database
 const rewardsData = [
   { day: 1, value: 50, currency: 'STARS', icon: STAR1 },
   { day: 2, value: 100, currency: 'STARS', icon: STAR2 },
@@ -77,32 +76,94 @@ const DailyRewardsModal = ({
     currentStreak = 0,       
     hasClaimedToday = false  
 }) => {
-    // Custom Alert State
     const [alertMessage, setAlertMessage] = useState('');
+    
+    // NEW: State to hold the reward data for the celebratory pop-up
+    const [successReward, setSuccessReward] = useState(null);
 
-    // Evaluates status dynamically based on real database properties
     const getDayStatus = (day) => {
         if (day <= currentStreak) return 'claimed';
         if (day === currentStreak + 1 && !hasClaimedToday) return 'available';
         return 'locked';
     };
 
-    // Wrapper function to capture the response message and show the pop-up
-    const executeClaim = async (day, value, currency) => {
-        const message = await onClaimReward(day, value, currency);
-        if (message) {
-            setAlertMessage(message);
+    // Modified to receive the icon and handle boolean success from LandingLayout
+    const executeClaim = async (day, value, currency, icon) => {
+        const result = await onClaimReward(day, value, currency);
+        
+        if (result === true) {
+            // If successful, show the celebratory pop-up
+            setSuccessReward({ day, value, currency, icon });
+        } else if (typeof result === 'string') {
+            // If it returns a string, it's an error message
+            setAlertMessage(result);
         }
     };
 
     if (!isOpen) return null;
 
-    // --- CRITICAL FIX: Wrapped in ReactDOM.createPortal to break out of layout ---
     return ReactDOM.createPortal(
         <div className="daily-rewards-scrim" onClick={onClose}>
             <div className="daily-rewards-container" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
                 
-                {/* Custom Alert Pop-up Overlay */}
+                {/* 1. Celebratory Claim Success Pop-up */}
+                {successReward && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                        backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        zIndex: 110, borderRadius: 'inherit'
+                    }}>
+                        <div style={{ 
+                            background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)', 
+                            padding: '40px 30px', borderRadius: '24px', 
+                            textAlign: 'center', width: '85%', maxWidth: '340px', 
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.4), 0 0 0 4px rgba(250, 204, 21, 0.3)',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            animation: 'slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        }}>
+                            <h2 style={{ margin: '0 0 24px 0', color: '#1e293b', fontSize: '24px', fontWeight: 800 }}>
+                                Day {successReward.day} Claimed!
+                            </h2>
+                            
+                            <div style={{
+                                width: '110px', height: '110px', borderRadius: '50%', 
+                                background: '#fef3c7', display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                marginBottom: '24px', boxShadow: '0 10px 25px rgba(250, 204, 21, 0.4)'
+                            }}>
+                                <img src={successReward.icon} alt="Reward" style={{ width: '70px', height: '70px', objectFit: 'contain' }} />
+                            </div>
+
+                            <div style={{ fontSize: '32px', fontWeight: 900, color: '#d97706', marginBottom: '8px' }}>
+                                +{successReward.value.toLocaleString()} <span style={{ fontSize: '18px' }}>{successReward.currency}</span>
+                            </div>
+                            
+                            <p style={{ margin: '0 0 30px 0', color: '#64748b', fontSize: '15px' }}>
+                                Awesome! Come back tomorrow to keep your streak alive.
+                            </p>
+
+                            <button 
+                                onClick={() => {
+                                    setSuccessReward(null);
+                                    onClose(); // Closes the whole modal after claiming
+                                }} 
+                                style={{ 
+                                    background: '#1e88e5', color: 'white', border: 'none', 
+                                    padding: '16px 24px', borderRadius: '12px', cursor: 'pointer', 
+                                    fontWeight: 'bold', fontSize: '16px', width: '100%', 
+                                    boxShadow: '0 4px 12px rgba(30, 136, 229, 0.3)',
+                                    transition: 'transform 0.1s'
+                                }}
+                                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}
+                                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* 2. Error/Notice Pop-up Overlay */}
                 {alertMessage && (
                     <div style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -122,9 +183,9 @@ const DailyRewardsModal = ({
                             <button 
                                 onClick={() => setAlertMessage('')} 
                                 style={{ 
-                                    background: '#2563eb', color: 'white', border: 'none', 
+                                    background: '#1e88e5', color: 'white', border: 'none', 
                                     padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', 
-                                    fontWeight: 'bold', width: '100%', transition: 'background 0.2s' 
+                                    fontWeight: 'bold', width: '100%' 
                                 }}
                             >
                                 Okay
@@ -133,7 +194,6 @@ const DailyRewardsModal = ({
                     </div>
                 )}
 
-                {/* The Banner Image */}
                 <img src={StarBanner} alt="Claim Your Daily Stars" className="daily-banner-image" />
 
                 <div className="daily-content-wrapper">
@@ -148,21 +208,22 @@ const DailyRewardsModal = ({
                                 key={reward.day} 
                                 reward={reward} 
                                 status={getDayStatus(reward.day)}
-                                onClaim={() => executeClaim(reward.day, reward.value, reward.currency)} 
+                                // Pass the icon directly into executeClaim here
+                                onClaim={() => executeClaim(reward.day, reward.value, reward.currency, reward.icon)} 
                             />
                         ))}
                     </div>
                     
                     <Day7Reward 
                         status={getDayStatus(7)} 
-                        onClaim={() => executeClaim(7, 1000, 'STARS')} 
+                        onClaim={() => executeClaim(7, 1000, 'STARS', STAR7)} 
                     />
                     
                     <button className="daily-close-btn" onClick={onClose}>CLOSE</button>
                 </div>
             </div>
         </div>,
-        document.body // <-- This tells React to render it over the entire page
+        document.body
     );
 };
 

@@ -3,46 +3,41 @@
   display: flex;
   gap: 15px;
   overflow-x: auto;
-  
-  /* Forces the container to create empty space for the cards to expand into */
-  padding: 30px 25px 30px 5px !important; 
-  
+  padding: 30px 25px 30px 5px !important;
   scroll-behavior: smooth;
   align-items: center;
-  
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .yt-scroll-container::-webkit-scrollbar {
   display: none;
 }
 
-/* Individual Video Cards */
+.platform-content-scroll {
+  scroll-behavior: auto;
+}
+
 .yt-card {
-  flex: 0 0 340px; 
-  height: 191px; 
+  flex: 0 0 340px;
+  height: 191px;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
   background-color: #000;
   cursor: pointer;
   z-index: 1;
-  
-  /* Forces the browser to prepare for the zoom animation */
   will-change: transform;
   transform-origin: center center;
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease, z-index 0s !important;
 }
 
-/* The Hover Effect */
 .yt-card:hover {
-  /* The !important tags force this to override everything else */
-  transform: scale(1.05) !important; 
-  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2) !important;    
+  transform: scale(1.05) !important;
+  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2) !important;
   z-index: 50 !important;
 }
-/* ... keep the rest of your CSS exactly the same ... */    
+
 .yt-card-image {
   width: 100%;
   height: 100%;
@@ -80,3 +75,4 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+

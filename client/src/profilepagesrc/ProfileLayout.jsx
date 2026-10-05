@@ -5,6 +5,7 @@ import './css/ProfileLayout.css';
 
 const ProfileLayout = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
+  const [dailyOpenRequest, setDailyOpenRequest] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('juancast_user');
@@ -14,16 +15,22 @@ const ProfileLayout = () => {
   }, []);
 
   const userAvatar = loggedInUser?.avatar || "";
+  const requestDailyOpen = () => setDailyOpenRequest(Date.now());
+  const consumeDailyOpenRequest = () => setDailyOpenRequest(0);
 
   return (
     <Layout 
-      showWelcome={false} 
+      showWelcome={true}
+      welcomeText={`Welcome, ${loggedInUser?.username || 'Guest'}!`}
+      tokens={loggedInUser?.suns ?? 0}
+      stars={loggedInUser?.stars ?? 0}
       showActions={true} 
       loggedInUser={loggedInUser}
       avatar={userAvatar}
+      onCalendarClick={requestDailyOpen}
     >
       <div className="profile-content-container">
-        <Outlet />
+        <Outlet context={{ dailyOpenRequest, consumeDailyOpenRequest }} />
       </div>
     </Layout>
   );

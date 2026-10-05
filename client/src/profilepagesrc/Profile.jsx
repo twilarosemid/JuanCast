@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ProfileActionButton } from './ProfileButton';
 import DailyRewardsModal from '../components/Daily.jsx';
 import './css/Profile.css';
@@ -20,6 +20,7 @@ const checkHasClaimedToday = (lastClaimDate) => {
 const Profile = () => {
   const navigate = useNavigate();
   const { username: routeUsername } = useParams();
+  const { dailyOpenRequest, consumeDailyOpenRequest } = useOutletContext();
 
   const formatJoinedDate = (dateValue) => {
     if (!dateValue) return 'Joined recently';
@@ -74,6 +75,13 @@ const Profile = () => {
   const [followersCount, setFollowersCount] = useState(0);
   
   const [isDailyOpen, setIsDailyOpen] = useState(false); 
+
+  useEffect(() => {
+    if (dailyOpenRequest) {
+      setIsDailyOpen(true);
+      consumeDailyOpenRequest();
+    }
+  }, [dailyOpenRequest, consumeDailyOpenRequest]);
 
   const normalizeUserHandle = (value = '') => (value || '').replace(/^@/, '').trim().toLowerCase();
   const isOwnProfile = !routeUsername || normalizeUserHandle(routeUsername) === normalizeUserHandle(loggedInUser?.username || user.username);
