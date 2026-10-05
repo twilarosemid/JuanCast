@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
-import '../css/YouTubeContent.css';
+import '../css/YoutubeContent.css';
 
 const YouTubeContent = () => {
   const scrollRef = useRef(null);
