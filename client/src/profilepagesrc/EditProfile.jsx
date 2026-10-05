@@ -73,7 +73,7 @@ function EditProfile() {
         }
 
         if (userEmail) {
-          const response = await fetch(`http://localhost:5000/api/users/me?email=${encodeURIComponent(userEmail)}`);
+          const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/me?email=${encodeURIComponent(userEmail)}`);
           if (response.ok) {
             const dbUser = await response.json();
             profile = {
@@ -279,7 +279,7 @@ function EditProfile() {
     const updatePayload = { email: userEmail, fullName, username, avatar, coverPhoto, coverPosition };
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/update-profile', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatePayload)

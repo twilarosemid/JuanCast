@@ -43,7 +43,7 @@ const PollsView = () => {
   useEffect(() => {
     const loadPolls = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/polls');
+        const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/polls');
         if (!response.ok) throw new Error('Failed to load polls');
 
         const data = await response.json();

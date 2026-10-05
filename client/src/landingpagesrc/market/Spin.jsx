@@ -68,7 +68,7 @@ const Spin = ({ loggedInUser }) => {
     }
 
     const controller = new AbortController();
-    fetch(`http://localhost:5000/api/users/spin-status?email=${encodeURIComponent(loggedInUser.email)}`, { signal: controller.signal })
+    fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/spin-status?email=${encodeURIComponent(loggedInUser.email)}`, { signal: controller.signal })
       .then(async response => {
         const result = await parseApiResponse(response);
         if (!response.ok) throw new Error(result.message || 'Could not load spins.');
@@ -115,7 +115,7 @@ const Spin = ({ loggedInUser }) => {
     setRolling(true);
     setSpinMessage('');
     try {
-      const response = await fetch('http://localhost:5000/api/users/spin', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loggedInUser.email })

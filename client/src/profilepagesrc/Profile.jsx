@@ -103,7 +103,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/follow', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/follow', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -134,7 +134,7 @@ const Profile = () => {
       if (!parsedUser) {
         if (routeUsername) {
           try {
-            const response = await fetch(`http://localhost:5000/api/users/profile/${encodeURIComponent(normalizeUserHandle(routeUsername))}`);
+            const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/profile/${encodeURIComponent(normalizeUserHandle(routeUsername))}`);
             if (response.ok) {
               const profile = await response.json();
               setUser((prev) => ({
@@ -173,7 +173,7 @@ const Profile = () => {
 
       if (isViewingDifferentUser) {
         try {
-          const response = await fetch(`http://localhost:5000/api/users/profile/${encodeURIComponent(normalizeUserHandle(routeUsername))}`);
+          const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/profile/${encodeURIComponent(normalizeUserHandle(routeUsername))}`);
           if (response.ok) {
             const profile = await response.json();
             const targetFollowers = Array.isArray(profile.followers) ? profile.followers : [];
@@ -204,7 +204,7 @@ const Profile = () => {
 
       if (parsedUser.email) {
         try {
-          const response = await fetch(`http://localhost:5000/api/users/me?email=${encodeURIComponent(parsedUser.email)}`);
+          const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/me?email=${encodeURIComponent(parsedUser.email)}`);
           if (response.ok) {
             const profile = await response.json();
             const freshUser = {
@@ -256,7 +256,7 @@ const Profile = () => {
       return;
     }
 
-    fetch('http://localhost:5000/api/posts')
+    fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts')
       .then((res) => res.json())
       .then((data) => {
         if (!Array.isArray(data)) return;
@@ -290,7 +290,7 @@ const Profile = () => {
     }));
 
     try {
-      await fetch(`http://localhost:5000/api/posts/${postId}/like`, {
+      await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts/${postId}/like`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: currentProfileHandle })
@@ -330,7 +330,7 @@ const Profile = () => {
     if (!replyText || !replyText.trim()) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}/reply`, {
+      const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts/${postId}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: currentProfileHandle, avatar: user.avatar || loggedInUser?.avatar || '', text: replyText })
@@ -357,7 +357,7 @@ const Profile = () => {
     if (!trimmedText) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/posts', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -390,7 +390,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/users/daily-claim', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/daily-claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

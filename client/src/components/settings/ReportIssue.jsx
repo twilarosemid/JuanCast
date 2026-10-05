@@ -36,7 +36,7 @@ const ReportIssue = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/reports', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/reports', {
         method: 'POST',
         body: submitData, 
       });

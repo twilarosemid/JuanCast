@@ -240,7 +240,7 @@ const normalizeImageUrl = (value = '') => {
   if (/^https?:\/\//i.test(value)) return value;
   const cleanPath = value.startsWith('/') ? value : `/${value}`;
   const formattedPath = cleanPath.startsWith('/uploads/') ? cleanPath : `/uploads/${cleanPath.replace(/^\//, '')}`;
-  return `http://localhost:5000${formattedPath}`;
+  return `http://[https://juancast.onrender.com](https://juancast.onrender.com)${formattedPath}`;
 };
 
 const seedChikaArticles = async () => {

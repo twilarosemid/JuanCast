@@ -35,7 +35,7 @@ const SunsConvert = ({ loggedInUser }) => {
 
     setConverting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/users/convert-suns', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/convert-suns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loggedInUser.email, suns: sunsToConvert })

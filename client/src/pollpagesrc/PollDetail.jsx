@@ -39,8 +39,8 @@ const PollDetail = () => {
     const fetchPollData = async () => {
       try {
         const [pollsRes, rankingsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/polls'),
-          fetch('http://localhost:5000/api/rankings')
+          fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/polls'),
+          fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/rankings')
         ]);
 
         const pollsData = await pollsRes.json();
@@ -81,7 +81,7 @@ const PollDetail = () => {
     if (!selectedRanking || voteAmount <= 0) return;
     try {
       const currentUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
-      const response = await fetch(`http://localhost:5000/api/rankings/${selectedRanking._id || selectedRanking.id}/vote`, {
+      const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/rankings/${selectedRanking._id || selectedRanking.id}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: currentUser.email, currencyType: 'stars', cost: voteAmount })
@@ -90,7 +90,7 @@ const PollDetail = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Failed to cast vote');
 
-      const refreshRes = await fetch('http://localhost:5000/api/rankings');
+      const refreshRes = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/rankings');
       if (refreshRes.ok) {
         const freshRankings = await refreshRes.json();
         const pollArtists = freshRankings.filter(r => r.group === poll.group && r.category === poll.title);

@@ -58,14 +58,14 @@ const ChikaPanel = ({ featuredLayout = true }) => {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/chika');
+        const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/chika');
         if (!response.ok) throw new Error('Failed to load Chika articles');
 
         const data = await response.json();
         setArticles(Array.isArray(data) && data.length > 0 ? data : [fallbackArticle]);
 
         try {
-          const settingsResponse = await fetch('http://localhost:5000/api/settings');
+          const settingsResponse = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/settings');
           if (!settingsResponse.ok) throw new Error('Failed to load Chika headline setting');
           const settings = await settingsResponse.json();
           setHeadlineId(settings.featuredChikaId || '');

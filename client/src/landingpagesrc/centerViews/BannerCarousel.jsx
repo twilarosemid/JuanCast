@@ -11,7 +11,7 @@ const BannerCarousel = () => {
     const fetchBanners = async () => {
       try {
         setDebugLog('Attempting to fetch from /api/banners...');
-        const response = await fetch('http://localhost:5000/api/banners');
+        const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/banners');
         
         if (response.ok) {
           const data = await response.json();

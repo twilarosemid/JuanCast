@@ -38,7 +38,7 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
 
       if (!parsedUser.avatar && parsedUser.email) {
         try {
-          const response = await fetch(`http://localhost:5000/api/users/me?email=${encodeURIComponent(parsedUser.email)}`);
+          const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/me?email=${encodeURIComponent(parsedUser.email)}`);
           if (response.ok) {
             const profile = await response.json();
             const updatedUser = { ...parsedUser, avatar: profile.avatar || '' };
@@ -55,7 +55,7 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
     window.addEventListener('juancast-user-updated', syncLoggedInUser);
     window.addEventListener('storage', syncLoggedInUser);
 
-    fetch('http://localhost:5000/api/posts')
+    fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -135,7 +135,7 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
     }));
 
     try {
-      await fetch(`http://localhost:5000/api/posts/${postId}/like`, { 
+      await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts/${postId}/like`, { 
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: chatUsername })
@@ -158,7 +158,7 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
     if (!loggedInUser) return alert("Log in to comment!");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}/reply`, {
+      const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts/${postId}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: chatUsername, avatar: userAvatar, text: replyText })

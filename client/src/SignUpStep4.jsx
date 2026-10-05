@@ -53,7 +53,7 @@ const SignUpStep4 = () => {
     const enteredOtp = otp.join('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/verify-otp', {
+      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // FIXED: Send all the profile data to the Node.js backend

@@ -12,13 +12,13 @@ const AllPolls = () => {
 
   useEffect(() => {
     // 1. Fetch the Polls
-    fetch('http://localhost:5000/api/polls')
+    fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/polls')
       .then(res => res.json())
       .then(data => setPolls(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error fetching polls:", err));
 
     // 2. Fetch the Poll Groups (for the image filters)
-    fetch('http://localhost:5000/api/poll-groups')
+    fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/poll-groups')
       .then(res => res.json())
       .then(data => setPollGroups(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error fetching poll groups:", err));
