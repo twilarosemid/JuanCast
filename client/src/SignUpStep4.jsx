@@ -71,7 +71,7 @@ const SignUpStep4 = () => {
 
       if (response.ok) {
         alert("Account Created Successfully!");
-        navigate('/'); // Send them back to the login page
+        navigate('/login');
       } else {
         setErrorMessage(data.message || 'Invalid verification code.');
       }
@@ -138,7 +138,7 @@ const SignUpStep4 = () => {
           </form>
 
           <p className="back-to-login-text">
-            Already have an account? <Link to="/" className="back-link">Log In!</Link>
+            Already have an account? <Link to="/login" className="back-link">Log In!</Link>
           </p>
 
           <span className="version" style={{marginTop: '30px'}}>v1.0.62</span>

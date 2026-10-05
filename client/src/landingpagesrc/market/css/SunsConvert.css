@@ -1,0 +1,95 @@
+.market-balances {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.market-balances span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.market-balances img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.sun-conversion-form {
+  display: flex;
+  width: min(100%, 520px);
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.conversion-rate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  color: #334155;
+  font-size: 16px;
+}
+
+.conversion-rate img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.sun-conversion-form label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sun-conversion-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #1e293b;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.conversion-result {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.conversion-result strong {
+  color: #1e293b;
+}
+
+.market-rules {
+  width: min(100%, 520px);
+  margin: 18px auto 0;
+  padding-left: 20px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}

@@ -43,12 +43,14 @@ const CommunityPage = () => {
         {activeCommunitySection === 'chat' && (
           <>
             <h1 className="community-section-title">Chat</h1>
-            <ChatPanel
-              onPostRequested={onPostRequested}
-              focusPostId={openPostId}
-              focusReplyIndex={openReplyIndex}
-              focusKey={focusKey}
-            />
+            <div className="community-chat-feed">
+              <ChatPanel
+                onPostRequested={onPostRequested}
+                focusPostId={openPostId}
+                focusReplyIndex={openReplyIndex}
+                focusKey={focusKey}
+              />
+            </div>
           </>
         )}
         {activeCommunitySection === 'chika' && (

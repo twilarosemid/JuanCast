@@ -99,6 +99,34 @@
   width: 100%;
 }
 
+.polls-main-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+
+.poll-group-section {
+  min-width: 0;
+}
+
+.poll-group-heading {
+  margin: 0 0 14px;
+  color: #1e293b;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.polls-empty-state {
+  margin: 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff;
+  color: #64748b;
+  text-align: center;
+}
+
 .poll-card {
   background: white;
   border-radius: 12px;

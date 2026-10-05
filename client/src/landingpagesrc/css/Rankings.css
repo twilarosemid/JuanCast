@@ -1,37 +1,50 @@
 /* --- Rankings.css --- */
-.rankings-container {
+.rankings-view {
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.rankings-view-heading {
   display: flex;
   justify-content: center;
+  width: 100%;
+  margin: 55px 0 40px;
+}
+
+.rankings-view-heading h2 {
+  margin: 0;
+  color: #000;
+  font-size: clamp(20px, 5cqi, 30px);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.rankings-container {
+  display: grid;
+  width: min(100%, 1000px);
+  grid-template-columns: repeat(3, minmax(0, 230px));
+  justify-content: center;
   align-items: flex-end;
-  gap: 50px; /* INCREASED: Pushes cards further apart */
-  padding: 20px 20px 60px 20px; 
-  max-width: 1000px; /* Widened to allow for the extra gap */
+  gap: clamp(10px, 4cqi, 40px);
+  padding: 20px 0 60px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* 1 Item Layout: Center */
 .rankings-container.podium-one {
+  grid-template-columns: minmax(0, 230px);
   align-items: center;
 }
 
 /* 2 Items Layout */
 .rankings-container.podium-two {
+  grid-template-columns: repeat(2, minmax(0, 210px));
   align-items: center;
-  gap: 45px;
-}
-
-.rankings-container.podium-two .ranking-card {
-  width: 210px !important;
-  transform: none !important;
-}
-
-.rankings-container.podium-two .ranking-img-placeholder {
-  height: 250px !important;
-}
-
-/* 3+ Items Layout */
-.rankings-container.podium-three {
-  gap: 40px; /* INCREASED: More breathing room between the 3 rotated cards */
 }
 
 /* Rotations for 3+ items layout - Relaxed slightly for a cleaner look */
@@ -45,7 +58,8 @@
 
 .ranking-card {
   border-radius: 20px;
-  width: 200px; /* Slightly wider cards */
+  width: 100%;
+  min-width: 0;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -70,7 +84,7 @@
   background: linear-gradient(rgba(219, 172, 52, 0.95), rgba(219, 172, 52, 0.85)), 
               url('../../assets/background_portrait.png') center/cover no-repeat;
   border: 2px solid rgba(255, 255, 255, 0.4); /* Softer semi-transparent border */
-  width: 230px; 
+  width: 100%;
   z-index: 3;
   transform: translateY(-30px); 
   /* Desaturated, soft ambient glow */
@@ -129,7 +143,8 @@
 
 .ranking-img-placeholder {
   width: 100%;
-  height: 220px;
+  aspect-ratio: 0.82;
+  height: auto;
   border-top-left-radius: 17px; 
   border-top-right-radius: 17px;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.6) 100%), /* Smooth dark fade to blend with card bottom */
@@ -143,7 +158,7 @@
 }
 
 .gold-card .ranking-img-placeholder { 
-  height: 260px; 
+  aspect-ratio: 0.78;
 }
 
 .ranking-info {
@@ -157,7 +172,7 @@
 }
 
 .ranking-title { 
-  font-size: 15px; 
+  font-size: clamp(11px, 2.4cqi, 15px);
   margin: 0 0 6px 0; 
   line-height: 1.3; 
   font-weight: 900; 
@@ -173,7 +188,7 @@
 }
 
 .ranking-votes { 
-  font-size: 22px; /* Emphasized numbers */
+  font-size: clamp(16px, 3.6cqi, 22px);
   font-weight: 900; 
   margin-bottom: 18px; 
   color: #ffffff; 
@@ -215,7 +230,7 @@
   background: #ffffff; 
   color: #0f172a;
   border: none;
-  padding: 12px 26px;
+  padding: 12px clamp(10px, 2.5cqi, 26px);
   border-radius: 30px; /* Premium pill shape */
   font-size: 13px;
   font-weight: 900;
@@ -259,8 +274,32 @@
 
 .rankings-empty-state {
   text-align: center;
-  padding: 40px;
+  padding: clamp(20px, 5cqi, 40px);
   color: #666;
+}
+
+@container (max-width: 560px) {
+  .rankings-container,
+  .rankings-container.podium-one,
+  .rankings-container.podium-two {
+    grid-template-columns: minmax(0, 300px);
+    align-items: center;
+    gap: 28px;
+  }
+
+  .rankings-container.podium-three .gold-card {
+    order: -1;
+  }
+
+  .rankings-container.podium-three .silver-card,
+  .rankings-container.podium-three .bronze-card,
+  .rankings-container.podium-two .ranking-card {
+    transform: none;
+  }
+
+  .ranking-card {
+    justify-self: center;
+  }
 }
 
 /* --- FULL-SCREEN YOUTUBE HOVER STYLES --- */

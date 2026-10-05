@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import logo from '../assets/juancast_logo.webp';
+import notificationIcon from '../assets/notifications.png';
+import calendarIcon from '../assets/calendar.webp';
 // IMPORT YOUR NEW CURRENCY ICONS HERE
 import StarCurr from '../assets/StarCurr.png';
 import SunCurr from '../assets/SunCurr.png';
@@ -15,7 +17,8 @@ const Layout = ({
   showActions = true,
   loggedInUser = null,
   avatar = '',
-  onCalendarClick 
+  onCalendarClick,
+  hideHeader = false
 }) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -152,10 +155,12 @@ const Layout = ({
   };
 
   const unreadCount = notifications.filter(notification => !notification.isRead).length;
+  const mailNotifications = notifications.filter(notification => notification.type === 'mail');
+  const visibleNotifications = notifications.filter(notification => notification.type !== 'mail');
 
   return (
     <div className="landing-wrapper">
-      <div className="sticky-header-container">
+      {!hideHeader && <div className="sticky-header-container">
         <header className="landing-nav-blue">
           <div className="nav-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
             <img src={logo} alt="JuanCast Logo" className="nav-logo-img" />
@@ -174,10 +179,13 @@ const Layout = ({
                     setDropdownOpen(false);
                   }}
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
-                  </svg>
-                  {unreadCount > 0 && <span className="notification-count">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+                  <img src={notificationIcon} alt="" aria-hidden="true" />
+                  {unreadCount > 0 && (
+                    <span
+                      className="notification-count"
+                      aria-label={`${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`}
+                    />
+                  )}
                 </button>
 
                 {notificationsOpen && (
@@ -193,14 +201,34 @@ const Layout = ({
                       </button>
                     </div>
                     {notificationView === 'mail' ? (
-                      <p className="notification-empty">No mail notifications.</p>
+                      !notificationUser ? (
+                        <p className="notification-empty">Log in to view Mail.</p>
+                      ) : mailNotifications.length === 0 ? (
+                        <p className="notification-empty">No mail notifications.</p>
+                      ) : (
+                        <div className="notification-list">
+                          {mailNotifications.map(notification => (
+                            <article className={`notification-item${notification.isRead ? '' : ' unread'}`} key={notification._id}>
+                              <button
+                                type="button"
+                                className="notification-item-main"
+                                onClick={() => markNotificationRead(notification)}
+                              >
+                                <strong className="notification-actor">{notification.subject || 'JuanCast update'}</strong>
+                                {notification.preview && <span className="notification-preview">{notification.preview}</span>}
+                                <time>{new Date(notification.createdAt).toLocaleString()}</time>
+                              </button>
+                            </article>
+                          ))}
+                        </div>
+                      )
                     ) : !notificationUser ? (
                       <p className="notification-empty">Log in to view notifications.</p>
-                    ) : notifications.length === 0 ? (
+                    ) : visibleNotifications.length === 0 ? (
                       <p className="notification-empty">No notifications yet.</p>
                     ) : (
                       <div className="notification-list">
-                        {notifications.map(notification => {
+                        {visibleNotifications.map(notification => {
                           const actor = notification.actor || 'Someone';
                           const message = notification.type === 'like'
                             ? 'reacted to your post'
@@ -311,15 +339,12 @@ const Layout = ({
                 aria-label="Daily rewards"
                 style={{ cursor: 'pointer', marginLeft: '5px' }}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M16 3v4M8 3v4M3 10h18" />
-                </svg>
+                <img src={calendarIcon} alt="" aria-hidden="true" />
               </button>
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="main-content-area">
         {children}

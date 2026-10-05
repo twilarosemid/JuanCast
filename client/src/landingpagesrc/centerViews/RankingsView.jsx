@@ -167,11 +167,9 @@ const RankingsView = () => {
   };
 
   return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '55px', marginBottom: '40px' }}>
-        <h2 style={{ margin: 0, fontSize: '30px', color: '#000000', textTransform: 'uppercase', fontWeight: '900', letterSpacing: '1.5px', textAlign: 'center' }}>
-          {displayTitle}
-        </h2>
+    <section className="rankings-view">
+      <div className="rankings-view-heading">
+        <h2>{displayTitle}</h2>
       </div>
 
       {/* MAIN PODIUM VIEW */}
@@ -232,7 +230,7 @@ const RankingsView = () => {
           })}
         </div>
       )}
-    </>
+    </section>
   );
 };
 

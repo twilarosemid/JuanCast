@@ -15,24 +15,59 @@ function EditProfile() {
   const [coverPosition, setCoverPosition] = useState({ x: 50, y: 50 });
   const [fullName, setFullName] = useState('Donato Josef Asid Gulferic');
   const [username, setUsername] = useState('euno.fxd');
+  const [joinedDate, setJoinedDate] = useState('Joined recently');
+  const [initialProfile, setInitialProfile] = useState(null);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const [tokens, setTokens] = useState(10);
   const [stars, setStars] = useState(10);
   const [cropper, setCropper] = useState(null);
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  const formatJoinedDate = (dateValue) => {
+    if (!dateValue) return 'Joined recently';
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return 'Joined recently';
+
+    return `Joined ${date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })}`;
+  };
+
   useEffect(() => {
     const syncUserData = async () => {
+      let profile = {
+        fullName: 'Donato Josef Asid Gulferic',
+        username: 'euno.fxd',
+        avatar: defaultAvatar,
+        coverPhoto: defaultCoverPhoto,
+        coverPosition: { x: 50, y: 50 },
+        createdAt: null
+      };
+
       try {
         const storedUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
         const userEmail = storedUser?.email;
 
         if (storedUser) {
-          setFullName(storedUser.fullName || storedUser.name || 'Donato Josef Asid Gulferic');
-          setUsername(storedUser.username || 'euno.fxd');
-          setAvatar(storedUser.avatar || defaultAvatar);
-          setCoverPhoto(storedUser.coverPhoto || defaultCoverPhoto);
-          setCoverPosition(storedUser.coverPosition || { x: 50, y: 50 });
+          profile = {
+            ...profile,
+            fullName: storedUser.fullName || storedUser.name || profile.fullName,
+            username: storedUser.username || profile.username,
+            avatar: storedUser.avatar || profile.avatar,
+            coverPhoto: storedUser.coverPhoto || profile.coverPhoto,
+            coverPosition: storedUser.coverPosition || profile.coverPosition,
+            createdAt: storedUser.createdAt || storedUser.joinDate || profile.createdAt
+          };
+          setFullName(profile.fullName);
+          setUsername(profile.username);
+          setAvatar(profile.avatar);
+          setCoverPhoto(profile.coverPhoto);
+          setCoverPosition(profile.coverPosition);
+          setJoinedDate(formatJoinedDate(profile.createdAt));
           setTokens(storedUser.tokens ?? 10);
           setStars(storedUser.stars ?? 10);
         }
@@ -41,20 +76,42 @@ function EditProfile() {
           const response = await fetch(`http://localhost:5000/api/users/me?email=${encodeURIComponent(userEmail)}`);
           if (response.ok) {
             const dbUser = await response.json();
-            if (dbUser.fullName) setFullName(dbUser.fullName);
-            if (dbUser.username) setUsername(dbUser.username);
-            if (dbUser.avatar) setAvatar(dbUser.avatar);
-            if (dbUser.coverPhoto) setCoverPhoto(dbUser.coverPhoto);
-            if (dbUser.coverPosition) setCoverPosition(dbUser.coverPosition);
+            profile = {
+              ...profile,
+              fullName: dbUser.fullName || profile.fullName,
+              username: dbUser.username || profile.username,
+              avatar: dbUser.avatar || profile.avatar,
+              coverPhoto: dbUser.coverPhoto || profile.coverPhoto,
+              coverPosition: dbUser.coverPosition || profile.coverPosition,
+              createdAt: dbUser.createdAt || profile.createdAt
+            };
+            setFullName(profile.fullName);
+            setUsername(profile.username);
+            setAvatar(profile.avatar);
+            setCoverPhoto(profile.coverPhoto);
+            setCoverPosition(profile.coverPosition);
+            setJoinedDate(formatJoinedDate(profile.createdAt));
           }
         }
       } catch (error) {
         console.error('Error loading profile data for editing:', error);
+      } finally {
+        setInitialProfile(profile);
+        setIsProfileLoaded(true);
       }
     };
 
     syncUserData();
   }, []);
+
+  const hasChanges = initialProfile !== null && (
+    fullName !== initialProfile.fullName
+    || username !== initialProfile.username
+    || avatar !== initialProfile.avatar
+    || coverPhoto !== initialProfile.coverPhoto
+    || coverPosition.x !== initialProfile.coverPosition.x
+    || coverPosition.y !== initialProfile.coverPosition.y
+  );
 
   useEffect(() => {
     if (!isDraggingCrop || !cropper) return undefined;
@@ -208,6 +265,7 @@ function EditProfile() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!isProfileLoaded || !hasChanges) return;
 
     const storedUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
     const userEmail = storedUser?.email;
@@ -251,8 +309,6 @@ function EditProfile() {
       alert('A network error occurred.');
     }
   };
-
-  const joinedDate = 'Joined Sept 8, 2026';
 
   return (
     <div className="profile-dashboard-layout profile-edit-page">
@@ -299,11 +355,6 @@ function EditProfile() {
           </div>
 
           <div className="profile-right-actions">
-            <div className="profile-tokens">
-              <span>⭐ {stars}</span>
-              <span className="token-divider">|</span>
-              <span>🪙 {tokens}</span>
-            </div>
             <button type="button" className="profile-edit-btn" onClick={() => navigate('/profile')}>
               Back to Profile
             </button>
@@ -347,7 +398,9 @@ function EditProfile() {
               <button type="button" className="profile-edit-cancel" onClick={() => navigate('/profile')}>
                 Cancel
               </button>
-              <button type="submit" className="save-button">Save Changes</button>
+              <button type="submit" className="save-button" disabled={!isProfileLoaded || !hasChanges}>
+                Save Changes
+              </button>
             </div>
 
             <input

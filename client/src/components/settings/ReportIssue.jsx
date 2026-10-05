@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import './css/Settings.css'; 
 
 const ReportIssue = () => {
   const navigate = useNavigate();
+  const { loggedInUser } = useOutletContext();
   
   const [formData, setFormData] = useState({
     subject: '',
@@ -28,6 +29,7 @@ const ReportIssue = () => {
     const submitData = new FormData();
     submitData.append('subject', formData.subject);
     submitData.append('issue', formData.issue);
+    if (loggedInUser?.email) submitData.append('email', loggedInUser.email);
     
     if (formData.file) {
       submitData.append('file', formData.file);
@@ -80,7 +82,7 @@ const ReportIssue = () => {
             </div>
             <h3 style={{ margin: '0 0 10px 0', color: '#1e293b', fontSize: '20px' }}>Report Submitted</h3>
             <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
-              Thank you for letting us know. We will look into this issue shortly.
+              Thank you for letting us know. We will look into this issue shortly. You will receive a notification in Mail if your report is resolved.
             </p>
             <button 
               onClick={() => navigate(-1)}

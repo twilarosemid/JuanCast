@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './css/Polls.css';
 
 const AllPolls = () => {
@@ -35,6 +35,17 @@ const AllPolls = () => {
     
     return matchesSearch && matchesGroup && matchesType;
   });
+
+  const groupNames = [...new Set([
+    ...pollGroups.map(group => group.name),
+    ...polls.map(poll => poll.group || 'PPMA')
+  ])];
+  const pollsByGroup = groupNames
+    .map(groupName => ({
+      name: groupName,
+      polls: filteredPolls.filter(poll => (poll.group || 'PPMA') === groupName)
+    }))
+    .filter(group => group.polls.length > 0);
 
   const formatDate = (dateString) => {
     if (!dateString) return "TBA";
@@ -96,23 +107,37 @@ const AllPolls = () => {
         </div>
       </aside>
 
-      <main className="polls-grid">
-        {filteredPolls.map(poll => (
-          <div key={poll._id} className="poll-card" onClick={() => navigate(`/polls/${poll._id}`)}>
-            <div className="poll-card-image" style={{ backgroundImage: `url(${poll.imageUrl || ''})` }}></div>
-            <div className="poll-card-info">
-              <h3 className="poll-card-title">{poll.title || "Untitled Poll"}</h3>
-              <p className="poll-card-date">
-                {formatDate(poll.fromDate)} - {formatDate(poll.toDate)}
-              </p>
-              <div className="poll-card-tags">
-                <span className="blue-icon">🪩</span>
-                <span className="tag-group">{poll.group || 'PPMA'}</span>
-                <span className="tag-type">{poll.type || 'Minor'}</span>
-              </div>
+      <main className="polls-main-content">
+        {pollsByGroup.map(group => (
+          <section className="poll-group-section" key={group.name}>
+            <h2 className="poll-group-heading">{group.name}</h2>
+            <div className="polls-grid">
+              {group.polls.map(poll => (
+                <div
+                  key={poll._id || poll.id}
+                  className="poll-card"
+                  onClick={() => navigate(`/polls/${poll._id || poll.id}`)}
+                >
+                  <div className="poll-card-image" style={{ backgroundImage: `url(${poll.imageUrl || ''})` }}></div>
+                  <div className="poll-card-info">
+                    <h3 className="poll-card-title">{poll.title || "Untitled Poll"}</h3>
+                    <p className="poll-card-date">
+                      {formatDate(poll.fromDate)} - {formatDate(poll.toDate)}
+                    </p>
+                    <div className="poll-card-tags">
+                      <span className="blue-icon">🪩</span>
+                      <span className="tag-group">{group.name}</span>
+                      <span className="tag-type">{poll.type || 'Minor'}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
         ))}
+        {!pollsByGroup.length && (
+          <p className="polls-empty-state">No polls match your filters.</p>
+        )}
       </main>
     </div>
   );

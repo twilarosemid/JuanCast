@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { ProfileActionButton } from './ProfileButton';
 import DailyRewardsModal from '../components/Daily.jsx';
+import RewardsCenter from './RewardsCenter';
 import './css/Profile.css';
 
 // 1. IMPORT YOUR CURRENCY ICONS
@@ -75,6 +76,15 @@ const Profile = () => {
   const [followersCount, setFollowersCount] = useState(0);
   
   const [isDailyOpen, setIsDailyOpen] = useState(false); 
+  const [isRewardsOpen, setIsRewardsOpen] = useState(false);
+
+  const openRewards = () => {
+    setIsRewardsOpen(true);
+  };
+
+  const closeRewards = () => {
+    setIsRewardsOpen(false);
+  };
 
   useEffect(() => {
     if (dailyOpenRequest) {
@@ -201,6 +211,8 @@ const Profile = () => {
               ...mergedUser,
               fullName: profile.fullName || mergedUser.name,
               username: profile.username || mergedUser.username,
+              createdAt: profile.createdAt || mergedUser.createdAt,
+              joined: formatJoinedDate(profile.createdAt || profile.joinDate || mergedUser.createdAt),
               avatar: profile.avatar || mergedUser.avatar || '',
               coverPhoto: profile.coverPhoto || mergedUser.coverPhoto || '',
               coverPosition: profile.coverPosition || mergedUser.coverPosition || { x: 50, y: 50 },
@@ -372,8 +384,9 @@ const Profile = () => {
   // 4. ADD THE DAILY DATABASE FETCH LOGIC
   const handleClaimDailyReward = async (day, value, currency) => {
     if (!loggedInUser?.email) {
-      alert("Please log in to claim daily rewards.");
-      return;
+      setIsDailyOpen(false);
+      navigate('/login');
+      return false;
     }
 
     try {
@@ -410,7 +423,7 @@ const Profile = () => {
   };
 
   const featureButtons = [
-    { icon: '⭐', text: 'Daily', onClick: () => setIsDailyOpen(true) },
+    { icon: '⭐', text: 'Rewards', onClick: openRewards },
     { icon: '🎁', text: 'Juantask', onClick: () => console.log('Juantask clicked') },
     { icon: '📢', text: 'Promo', onClick: () => console.log('Promo clicked') },
     { icon: '🎖️', text: 'Badges', onClick: () => console.log('Badges clicked') }
@@ -453,18 +466,19 @@ const Profile = () => {
 
           <div className="profile-right-actions">
             
-            {/* 5. UPDATE CURRENCY DISPLAY WITH ICONS */}
-            <div className="profile-tokens" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <img src={SunCurr} alt="Suns" style={{ width: '18px', height: '18px', objectFit: 'contain' }} /> 
-                {loggedInUser?.suns ?? user.suns ?? 0}
-              </span>
-              <span className="token-divider">/</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <img src={StarCurr} alt="Stars" style={{ width: '18px', height: '18px', objectFit: 'contain' }} /> 
-                {loggedInUser?.stars ?? user.stars ?? 0}
-              </span>
-            </div>
+            {isOwnProfile && loggedInUser && (
+              <div className="profile-tokens" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <img src={SunCurr} alt="Suns" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+                  {loggedInUser.suns ?? user.suns ?? 0}
+                </span>
+                <span className="token-divider">/</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <img src={StarCurr} alt="Stars" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+                  {loggedInUser.stars ?? user.stars ?? 0}
+                </span>
+              </div>
+            )}
 
             {!isOwnProfile && loggedInUser && (
               <ProfileActionButton
@@ -523,10 +537,10 @@ const Profile = () => {
               <h3 className="features-title">Platform Features</h3>
               <div className="platform-features-grid">
                 {featureButtons.map((btn, index) => (
-                  <div key={index} className="platform-feature-btn" onClick={btn.onClick}>
+                  <button key={index} type="button" className="platform-feature-btn" onClick={btn.onClick}>
                     <span className="feature-icon">{btn.icon}</span>
                     <span className="feature-label">{btn.text}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -678,6 +692,15 @@ const Profile = () => {
       </div>
 
       {/* 6. CONFIGURED THE MODAL TO USE ACTUAL DATABASE DATA */}
+      {isRewardsOpen && (
+        <RewardsCenter
+          loggedInUser={loggedInUser}
+          dailyStreak={loggedInUser?.dailyStreak || 0}
+          onClose={closeRewards}
+          onOpenDaily={() => setIsDailyOpen(true)}
+        />
+      )}
+
       <DailyRewardsModal 
         isOpen={isDailyOpen} 
         onClose={() => setIsDailyOpen(false)}

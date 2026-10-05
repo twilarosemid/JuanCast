@@ -93,7 +93,7 @@ html, body, #root {
 }
 .welcome-text { font-size: 16px; }
 .welcome-stats { display: flex; align-items: center; gap: 20px; font-size: 16px; }
-.calendar-icon { background: #000; color: white; padding: 4px 6px; border-radius: 6px; }
+.calendar-icon { background: transparent; color: white; padding: 4px 6px; border-radius: 6px; }
 
 /* 3-Column Grid */
 .landing-page-shell {
@@ -261,4 +261,3 @@ html, body, #root {
 .modal-cancel-btn:hover { background: #e2e6ea; }
 .modal-confirm-btn { background: #2563eb; color: white; }
 .modal-confirm-btn:hover { background: #1d4ed8; }
-

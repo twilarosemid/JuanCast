@@ -90,10 +90,15 @@ const AdminDashboard = () => {
   const [items, setItems] = useState({ rankings: [], polls: [], pollGroups: [], chika: [], videos: [], reports: [] });
   
   // --- HOMEPAGE FEATURED RANKING STATE ---
-  const [featuredConfig, setFeaturedConfig] = useState({ featuredGroup: '', featuredCategory: '' });
+  const [featuredConfig, setFeaturedConfig] = useState({
+    featuredGroup: '',
+    featuredCategory: '',
+    featuredChikaId: ''
+  });
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [reportMessages, setReportMessages] = useState({});
   
   const [fileInputKey, setFileInputKey] = useState({ rankings: 0, polls: 0, pollGroups: 0, chika: 0, banners: 0, videos: 0 });
 
@@ -152,7 +157,11 @@ const AdminDashboard = () => {
 
       if (settingsRes && settingsRes.ok) {
         const setts = await settingsRes.json();
-        setFeaturedConfig({ featuredGroup: setts.featuredGroup || '', featuredCategory: setts.featuredCategory || '' });
+        setFeaturedConfig({
+          featuredGroup: setts.featuredGroup || '',
+          featuredCategory: setts.featuredCategory || '',
+          featuredChikaId: setts.featuredChikaId || ''
+        });
       }
 
     } catch (error) {
@@ -190,6 +199,23 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error saving settings:', error);
       setStatus('Error updating featured settings.');
+    }
+  };
+
+  const saveFeaturedChika = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featuredChikaId: featuredConfig.featuredChikaId })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update the Chika headline.');
+      }
+      setStatus('Chika headline updated successfully!');
+    } catch (error) {
+      console.error('Error saving Chika headline:', error);
+      setStatus(error.message || 'Error updating the Chika headline.');
     }
   };
 
@@ -451,6 +477,31 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error resolving report:', error);
       setStatus('Error resolving report.');
+    }
+  };
+
+  const handleSendReportMessage = async (id) => {
+    const message = String(reportMessages[id] || '').trim();
+    if (!message) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/api/reports/${id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Failed to send message.');
+
+      setItems(previous => ({
+        ...previous,
+        reports: previous.reports.map(report => report._id === id ? result.report : report)
+      }));
+      setReportMessages(previous => ({ ...previous, [id]: '' }));
+      setStatus('Message sent to the reporter’s Mail notifications.');
+    } catch (error) {
+      console.error('Error sending report message:', error);
+      setStatus(error.message || 'Failed to send message to the reporter.');
     }
   };
 
@@ -811,6 +862,23 @@ const AdminDashboard = () => {
 
           <div className="admin-card">
             <h2 className="admin-card-title">Saved Chika</h2>
+            <div className="admin-form-group">
+              <label className="admin-label" htmlFor="featured-chika-select">Headline Article</label>
+              <select
+                id="featured-chika-select"
+                value={featuredConfig.featuredChikaId}
+                onChange={(e) => setFeaturedConfig({ ...featuredConfig, featuredChikaId: e.target.value })}
+                className="admin-input"
+              >
+                <option value="">Use the latest article</option>
+                {items.chika.map((item) => (
+                  <option key={item._id || item.id} value={item._id || item.id}>{item.title}</option>
+                ))}
+              </select>
+              <button onClick={saveFeaturedChika} className="admin-btn-primary">
+                Save Headline
+              </button>
+            </div>
             <div className="admin-items-list">
               {loading ? <div>Loading...</div> : items.chika.length === 0 ? <div>No chika articles yet.</div> : items.chika.map((item) => (
                 <div key={item._id || item.id} className="admin-item-row">
@@ -987,6 +1055,37 @@ const AdminDashboard = () => {
                       <div className="admin-item-subtext" style={{ fontSize: '12px', color: '#64748b' }}>
                         Reported on: {new Date(item.createdAt).toLocaleString()}
                       </div>
+                      {item.messages?.length > 0 && (
+                        <div style={{ marginTop: '12px' }}>
+                          <strong style={{ fontSize: '13px' }}>Messages sent</strong>
+                          {item.messages.map((entry, index) => (
+                            <p key={entry._id || `${item._id}-message-${index}`} style={{ margin: '6px 0', padding: '8px 10px', borderRadius: '6px', background: '#eff6ff', color: '#1e3a8a', whiteSpace: 'pre-wrap' }}>
+                              {entry.message}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      {item.reporterEmail && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+                          <textarea
+                            value={reportMessages[item._id] || ''}
+                            onChange={event => setReportMessages(previous => ({ ...previous, [item._id]: event.target.value }))}
+                            placeholder="Write a message for the reporter..."
+                            maxLength={2000}
+                            rows={3}
+                            style={{ flex: '1 1 260px', minWidth: 0, padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', font: 'inherit', resize: 'vertical' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSendReportMessage(item._id)}
+                            disabled={!reportMessages[item._id]?.trim()}
+                            className="admin-btn-primary"
+                            style={{ alignSelf: 'flex-end' }}
+                          >
+                            Send Message
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="admin-item-actions" style={{ marginLeft: '15px' }}>

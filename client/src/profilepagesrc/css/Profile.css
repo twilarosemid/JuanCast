@@ -50,8 +50,8 @@ html, body {
 .profile-cover-photo {
   position: relative;
   width: calc(100% + 48px);
-  min-height: 220px;
-  aspect-ratio: 2.6 / 1;
+  min-height: 200px;
+  aspect-ratio: 3 / 1;
   margin: 0 -24px 15px -24px;
   overflow: hidden;
   background-color: #d1d5db;
@@ -69,7 +69,7 @@ html, body {
 
 @media (min-width: 850px) {
   .profile-cover-photo {
-    min-height: 320px;
+    min-height: 300px;
   }
 }
 
@@ -314,6 +314,9 @@ html, body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  width: 100%;
+  font: inherit;
+  text-align: left;
   transition: all 0.15s ease;
   user-select: none;
 }

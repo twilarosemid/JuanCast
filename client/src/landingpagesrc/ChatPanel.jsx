@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './css/ChatPanel.css';
 
 const timeAgo = (dateString) => {
@@ -17,6 +17,7 @@ const timeAgo = (dateString) => {
 };
 
 const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -102,6 +103,10 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
   };
 
   const handlePostClick = () => {
+    if (!loggedInUser?.email) {
+      navigate('/login');
+      return;
+    }
     if (!chatInput.trim()) return;
     
     // Pass the input data and a callback up to LandingLayout's modal trigger

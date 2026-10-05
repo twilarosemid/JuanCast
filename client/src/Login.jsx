@@ -146,7 +146,7 @@ const Login = () => {
             <button type="submit" className="login-button">LOGIN</button>
           </form>
 
-          <a href="#" className="forgot-password">forgot password?</a>
+          <Link to="/forgot-password" className="forgot-password">forgot password?</Link>
 
           <p className="signup-text">
             Don't have an account? <Link to="/signup" className="signup-link">Sign Up!</Link>

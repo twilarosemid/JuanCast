@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { getPollDisplayTitle, sortRankings } = require('./contentUtils');
 require('dotenv').config();
 
@@ -51,6 +52,8 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true }, 
   password: { type: String, required: true },
   otp: { type: String }, 
+  passwordResetTokenHash: { type: String },
+  passwordResetExpiresAt: { type: Date },
   isVerified: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
   role: { type: String, enum: ['user', 'admin'], default: 'user' }
@@ -59,6 +62,47 @@ const User = mongoose.model('User', userSchema);
 
 const normalizeEmail = (value = '') => String(value).trim().toLowerCase();
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getPacificDateKey = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${values.year}-${values.month}-${values.day}`;
+};
+
+const resetDailySpins = async (email) => {
+  const emailFilter = { email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } };
+  const today = getPacificDateKey();
+  const profile = await Profile.findOne(emailFilter);
+  if (!profile) return null;
+  if (profile.spinDate === today) return profile;
+
+  const resetProfile = await Profile.findOneAndUpdate(
+    { ...emailFilter, spinDate: { $ne: today } },
+    { $set: { spinDate: today, spinsRemaining: 15, lastSpinAt: null } },
+    { new: true }
+  );
+  return resetProfile || Profile.findOne(emailFilter);
+};
+
+const resetDailySwerteSpins = async (email) => {
+  const emailFilter = { email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } };
+  const today = getPacificDateKey();
+  const profile = await Profile.findOne(emailFilter);
+  if (!profile) return null;
+  if (profile.swerteSpinDate === today) return profile;
+
+  const resetProfile = await Profile.findOneAndUpdate(
+    { ...emailFilter, swerteSpinDate: { $ne: today } },
+    { $set: { swerteSpinDate: today, swerteSpinsRemaining: 1 } },
+    { new: true }
+  );
+  return resetProfile || Profile.findOne(emailFilter);
+};
 
 const getAdminEmails = () => {
   const configured = (process.env.ADMIN_EMAIL || '')
@@ -77,6 +121,28 @@ const resolveAdminStatus = (user = {}) => {
 };
 
 // 2b. Define the Profile Schema (Public Info & Currency)
+const transactionChangeSchema = new mongoose.Schema({
+  currency: { type: String, required: true },
+  amount: { type: Number, required: true },
+  direction: { type: String, enum: ['credit', 'debit'], required: true }
+}, { _id: false });
+
+const transactionSchema = new mongoose.Schema({
+  category: { type: String, required: true },
+  description: { type: String, required: true },
+  details: { type: String, default: '' },
+  changes: { type: [transactionChangeSchema], default: [] },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const createTransaction = (category, description, changes, details = '') => ({
+  category,
+  description,
+  details,
+  changes,
+  createdAt: new Date()
+});
+
 const profileSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   fullName: { type: String, required: true },
@@ -95,9 +161,17 @@ const profileSchema = new mongoose.Schema({
   suns: { type: Number, default: 100 },
   dailyStreak: { type: Number, default: 0 },    // <-- ADDED FOR DAILY REWARDS
   lastClaimDate: { type: Date, default: null }, // <-- ADDED FOR DAILY REWARDS
+  spinsRemaining: { type: Number, default: 15 },
+  spinDate: { type: String, default: null },
+  lastSpinAt: { type: Date, default: null },
+  marketBonusSpins: { type: Number, default: 0 },
+  redeemedRewardIds: { type: [String], default: [] },
+  swerteSpinsRemaining: { type: Number, default: 1 },
+  swerteSpinDate: { type: String, default: null },
+  transactions: { type: [transactionSchema], default: [] },
   lastNameChange: { type: Date },
   lastUsernameChange: { type: Date }
-});
+}, { timestamps: true });
 const Profile = mongoose.model('Profile', profileSchema);
 
 // 2c. Define Content Schemas
@@ -226,7 +300,10 @@ app.get('/api/users/me', async (req, res) => {
     const profile = await Profile.findOne({ email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } });
     if (!profile) return res.status(404).json({ message: "Profile not found." });
 
-    res.status(200).json(profile);
+    res.status(200).json({
+      ...profile.toObject(),
+      createdAt: profile.createdAt || profile._id.getTimestamp()
+    });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({ error: "Server error fetching profile." });
@@ -239,7 +316,10 @@ app.get('/api/users/profile/:username', async (req, res) => {
     const profile = await Profile.findOne({ username: { $regex: `^${escapeRegex(req.params.username)}$`, $options: 'i' } });
     if (!profile) return res.status(404).json({ message: "Profile not found." });
 
-    res.status(200).json(profile);
+    res.status(200).json({
+      ...profile.toObject(),
+      createdAt: profile.createdAt || profile._id.getTimestamp()
+    });
   } catch (error) {
     console.error("Error fetching public profile:", error);
     res.status(500).json({ error: "Server error fetching profile." });
@@ -321,6 +401,9 @@ app.post('/api/users/daily-claim', async (req, res) => {
         profile.dailyStreak = 1; // Loop back after day 7
     }
 
+    const previousStars = profile.stars;
+    const previousSuns = profile.suns;
+
     // Allocate rewards
     if (currency === 'STARS') {
         profile.stars += rewardValue;
@@ -332,6 +415,17 @@ app.post('/api/users/daily-claim', async (req, res) => {
     }
 
     profile.lastClaimDate = now;
+    const rewardChanges = [];
+    const starsEarned = profile.stars - previousStars;
+    const sunsEarned = profile.suns - previousSuns;
+    if (starsEarned > 0) rewardChanges.push({ currency: 'Stars', amount: starsEarned, direction: 'credit' });
+    if (sunsEarned > 0) rewardChanges.push({ currency: 'Suns', amount: sunsEarned, direction: 'credit' });
+    profile.transactions.push(createTransaction(
+      'rewards',
+      `Daily reward · Day ${profile.dailyStreak}`,
+      rewardChanges
+    ));
+    if (profile.transactions.length > 200) profile.transactions.splice(0, profile.transactions.length - 200);
     await profile.save();
 
     res.status(200).json(profile);
@@ -358,7 +452,18 @@ app.post('/api/users/convert-suns', async (req, res) => {
     const emailFilter = { email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' } };
     const profile = await Profile.findOneAndUpdate(
       { ...emailFilter, suns: { $gte: sunsToConvert } },
-      { $inc: { suns: -sunsToConvert, stars: starsToAdd } },
+      {
+        $inc: { suns: -sunsToConvert, stars: starsToAdd },
+        $push: {
+          transactions: {
+            $each: [createTransaction('conversion', 'Suns converted to Stars', [
+              { currency: 'Suns', amount: sunsToConvert, direction: 'debit' },
+              { currency: 'Stars', amount: starsToAdd, direction: 'credit' }
+            ])],
+            $slice: -200
+          }
+        }
+      },
       { new: true }
     );
 
@@ -372,6 +477,236 @@ app.post('/api/users/convert-suns', async (req, res) => {
   } catch (error) {
     console.error('Error converting Suns to Stars:', error);
     res.status(500).json({ message: 'Failed to convert Suns to Stars.' });
+  }
+});
+
+app.get('/api/users/transactions', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.query.email || '');
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const profile = await Profile.findOne({
+      email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' }
+    }).select('transactions');
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    const transactions = [...(profile.transactions || [])]
+      .filter(transaction => transaction.category !== 'market spin' || (transaction.changes || []).some(change =>
+        change.currency === 'Stars' && change.direction === 'credit' && Number(change.amount) > 0
+      ))
+      .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+      .slice(0, 100);
+    res.status(200).json(transactions);
+  } catch (error) {
+    console.error('Error loading transactions:', error);
+    res.status(500).json({ message: 'Failed to load transactions.' });
+  }
+});
+
+app.get('/api/users/swerte-spin-status', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.query.email || '');
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const profile = await resetDailySwerteSpins(email);
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    res.status(200).json({
+      spinsRemaining: profile.swerteSpinsRemaining,
+      spinDate: profile.swerteSpinDate
+    });
+  } catch (error) {
+    console.error('Error loading Swerte spin status:', error);
+    res.status(500).json({ message: 'Failed to load Swerte spin status.' });
+  }
+});
+
+app.post('/api/users/swerte-spin', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email || '');
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const profile = await resetDailySwerteSpins(email);
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    const today = getPacificDateKey();
+    const updatedProfile = await Profile.findOneAndUpdate(
+      {
+        email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' },
+        swerteSpinDate: today,
+        swerteSpinsRemaining: { $gte: 1 }
+      },
+      {
+        $inc: { swerteSpinsRemaining: -1 },
+        $push: {
+          transactions: {
+            $each: [createTransaction('rewards', 'Swerte wheel spin', [
+              { currency: 'Swerte spins', amount: 1, direction: 'debit' }
+            ])],
+            $slice: -200
+          }
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(409).json({ message: 'You have already used your Swerte spin today.', spinsRemaining: 0 });
+    }
+
+    res.status(200).json({
+      spinsRemaining: updatedProfile.swerteSpinsRemaining,
+      spinDate: updatedProfile.swerteSpinDate
+    });
+  } catch (error) {
+    console.error('Error recording Swerte spin:', error);
+    res.status(500).json({ message: 'Failed to record Swerte spin.' });
+  }
+});
+
+app.post('/api/users/market-spin-bonus', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email || '');
+    const rewardId = typeof req.body.rewardId === 'string' ? req.body.rewardId.trim() : '';
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+    if (!rewardId || rewardId.length > 160) return res.status(400).json({ message: 'A valid reward ID is required.' });
+
+    const profile = await resetDailySpins(email);
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    const updatedProfile = await Profile.findOneAndUpdate(
+      {
+        email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' },
+        redeemedRewardIds: { $ne: rewardId }
+      },
+      {
+        $inc: { marketBonusSpins: 20 },
+        $addToSet: { redeemedRewardIds: rewardId },
+        $push: {
+          transactions: {
+            $each: [createTransaction('rewards', 'Swerte reward: +20 Market spins', [
+              { currency: 'Market spins', amount: 20, direction: 'credit' }
+            ])],
+            $slice: -200
+          }
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      const existingProfile = await Profile.findOne({
+        email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' }
+      });
+      if (!existingProfile) return res.status(404).json({ message: 'User profile not found.' });
+      if (!(existingProfile.redeemedRewardIds || []).includes(rewardId)) {
+        return res.status(409).json({ message: 'Could not redeem this reward. Please try again.' });
+      }
+      const bonusSpins = existingProfile.marketBonusSpins || 0;
+      return res.status(200).json({
+        bonusSpins,
+        spinsRemaining: (existingProfile.spinsRemaining || 0) + bonusSpins,
+        alreadyRedeemed: true
+      });
+    }
+
+    const bonusSpins = updatedProfile.marketBonusSpins || 0;
+    res.status(200).json({
+      bonusSpins,
+      spinsRemaining: (updatedProfile.spinsRemaining || 0) + bonusSpins
+    });
+  } catch (error) {
+    console.error('Error redeeming Market spins reward:', error);
+    res.status(500).json({ message: 'Failed to redeem Market spins reward.' });
+  }
+});
+
+app.get('/api/users/spin-status', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.query.email || '');
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const profile = await resetDailySpins(email);
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    res.status(200).json({
+      spinsRemaining: (profile.spinsRemaining || 0) + (profile.marketBonusSpins || 0),
+      stars: profile.stars,
+      lastSpinAt: profile.lastSpinAt
+    });
+  } catch (error) {
+    console.error('Error loading spin status:', error);
+    res.status(500).json({ message: 'Failed to load spin status.' });
+  }
+});
+
+app.post('/api/users/spin', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email || '');
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const profile = await resetDailySpins(email);
+    if (!profile) return res.status(404).json({ message: 'User profile not found.' });
+
+    const cooldownMs = 30_000;
+    const now = new Date();
+    if (profile.lastSpinAt && now.getTime() - profile.lastSpinAt.getTime() < cooldownMs) {
+      return res.status(429).json({ message: 'Please wait for the spin cooldown to finish.', cooldownEndsAt: new Date(profile.lastSpinAt.getTime() + cooldownMs) });
+    }
+    if (profile.spinsRemaining + profile.marketBonusSpins < 1) {
+      return res.status(400).json({ message: 'You have used all available spins.' });
+    }
+
+    const values = [0, 5, 10, 25, 50, 100];
+    const symbols = Array.from({ length: 3 }, () => values[Math.floor(Math.random() * values.length)]);
+    const counts = symbols.reduce((result, value) => ({ ...result, [value]: (result[value] || 0) + 1 }), {});
+    const match = Object.entries(counts).find(([, count]) => count > 1);
+    const reward = match ? Number(match[0]) * (match[1] === 3 ? 2 : 1) : 0;
+    const cooldownCutoff = new Date(now.getTime() - cooldownMs);
+    const spinUpdate = {
+      $inc: { stars: reward },
+      $set: { lastSpinAt: now }
+    };
+    if (reward > 0) {
+      spinUpdate.$push = {
+        transactions: {
+          $each: [createTransaction('market spin', 'Market slot spin', [
+            { currency: 'Stars', amount: reward, direction: 'credit' }
+          ])],
+          $slice: -200
+        }
+      };
+    }
+    const spinFilter = {
+      email: { $regex: `^${escapeRegex(email)}$`, $options: 'i' },
+      spinDate: getPacificDateKey(now),
+      $or: [{ lastSpinAt: null }, { lastSpinAt: { $lte: cooldownCutoff } }]
+    };
+    let updatedProfile = await Profile.findOneAndUpdate(
+      { ...spinFilter, spinsRemaining: { $gte: 1 } },
+      { ...spinUpdate, $inc: { ...spinUpdate.$inc, spinsRemaining: -1 } },
+      { new: true }
+    );
+    if (!updatedProfile) {
+      updatedProfile = await Profile.findOneAndUpdate(
+        { ...spinFilter, spinsRemaining: { $lt: 1 }, marketBonusSpins: { $gte: 1 } },
+        { ...spinUpdate, $inc: { ...spinUpdate.$inc, marketBonusSpins: -1 } },
+        { new: true }
+      );
+    }
+
+    if (!updatedProfile) return res.status(429).json({ message: 'Spin limit or cooldown reached. Refresh your status and try again.' });
+
+    res.status(200).json({
+      symbols,
+      reward,
+      spinsRemaining: (updatedProfile.spinsRemaining || 0) + (updatedProfile.marketBonusSpins || 0),
+      stars: updatedProfile.stars,
+      cooldownEndsAt: new Date(now.getTime() + cooldownMs)
+    });
+  } catch (error) {
+    console.error('Error processing spin:', error);
+    res.status(500).json({ message: 'Failed to process spin.' });
   }
 });
 
@@ -410,7 +745,9 @@ const notificationSchema = new mongoose.Schema({
   recipient: { type: String, required: true, index: true },
   actor: { type: String, required: true },
   actorAvatar: { type: String, default: '' },
-  type: { type: String, enum: ['like', 'reply', 'follow'], required: true },
+  type: { type: String, enum: ['like', 'reply', 'follow', 'mail'], required: true },
+  subject: { type: String, default: '' },
+  sourceId: { type: String, default: '' },
   postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', default: null },
   replyIndex: { type: Number, default: null },
   preview: { type: String, default: '' },
@@ -821,6 +1158,11 @@ app.post('/api/rankings/:id/vote', async (req, res) => {
       return res.status(404).json({ message: "User profile not found." });
     }
 
+    const ranking = await Ranking.findById(req.params.id);
+    if (!ranking) {
+      return res.status(404).json({ message: 'Ranking not found.' });
+    }
+
     if (typeof profile.stars !== 'number') profile.stars = 100;
     if (typeof profile.suns !== 'number') profile.suns = 100;
 
@@ -836,12 +1178,12 @@ app.post('/api/rankings/:id/vote', async (req, res) => {
     } else {
       profile.suns -= cost;
     }
+    const voteCurrency = currencyType === 'stars' ? 'Stars' : 'Suns';
+    profile.transactions.push(createTransaction('voting', `Vote · ${ranking.name}`, [
+      { currency: voteCurrency, amount: Number(cost), direction: 'debit' }
+    ], ranking.category || ''));
+    if (profile.transactions.length > 200) profile.transactions.splice(0, profile.transactions.length - 200);
     await profile.save();
-
-    const ranking = await Ranking.findById(req.params.id);
-    if (!ranking) {
-      return res.status(404).json({ message: 'Ranking not found.' });
-    }
 
     ranking.voteCount = Number(ranking.voteCount || 0) + cost;
     await ranking.save();
@@ -900,6 +1242,87 @@ app.delete('/api/rankings/:id', async (req, res) => {
   }
 });
 // Authentication Routes
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const normalizedEmail = normalizeEmail(req.body.email || '');
+    if (!normalizedEmail) return res.status(400).json({ message: 'Email is required.' });
+
+    const user = await User.findOne({
+      email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' },
+      isVerified: true
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'No verified account is registered with that email address.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save();
+
+    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
+    const resetUrl = `${clientUrl}/forgot-password?token=${encodeURIComponent(resetToken)}`;
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Reset your JuanCast password',
+        text: `We received a request to reset your JuanCast password. Use this link within one hour:\n\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`
+      });
+    } catch (error) {
+      user.passwordResetTokenHash = undefined;
+      user.passwordResetExpiresAt = undefined;
+      await user.save();
+      console.error('Error sending password reset email:', error);
+      return res.status(500).json({ message: 'Could not send the password reset email. Please try again later.' });
+    }
+
+    res.status(200).json({
+      message: 'Email verified. A password reset link has been sent.'
+    });
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    res.status(500).json({ message: 'Could not process the password reset request.' });
+  }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const token = typeof req.body.token === 'string' ? req.body.token : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    if (!token || !password) {
+      return res.status(400).json({ message: 'Reset token and new password are required.' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.findOneAndUpdate(
+      {
+        passwordResetTokenHash: tokenHash,
+        passwordResetExpiresAt: { $gt: new Date() }
+      },
+      {
+        $set: { password: hashedPassword },
+        $unset: { passwordResetTokenHash: 1, passwordResetExpiresAt: 1, otp: 1 }
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(400).json({ message: 'This password reset link is invalid or has expired. Request a new one.' });
+    }
+
+    res.status(200).json({ message: 'Password updated. You can now log in with your new password.' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: 'Could not reset the password. Please try again later.' });
+  }
+});
+
 app.post('/api/request-otp', async (req, res) => {
   try {
     const { email, phone, password } = req.body;
@@ -1200,6 +1623,14 @@ const reportSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   issue: { type: String, required: true },
   fileUrl: { type: String, default: '' },
+  reporterEmail: { type: String, default: '' },
+  reporterUsername: { type: String, default: '' },
+  messages: [{
+    message: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  resolved: { type: Boolean, default: false },
+  resolvedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -1210,15 +1641,24 @@ const Report = mongoose.model('Report', reportSchema);
 app.post('/api/reports', upload.single('file'), async (req, res) => {
   try {
     const { subject, issue } = req.body;
+    const reporterEmail = normalizeEmail(req.body.email || '');
+    const reporter = reporterEmail
+      ? await Profile.findOne({ email: { $regex: `^${escapeRegex(reporterEmail)}$`, $options: 'i' } }).select('username email')
+      : null;
 
     if (!subject || !issue) {
       return res.status(400).json({ message: 'Subject and issue text are required.' });
+    }
+    if (reporterEmail && !reporter) {
+      return res.status(404).json({ message: 'Reporter profile not found.' });
     }
 
     // Create the report in MongoDB
     const newReport = await Report.create({
       subject,
       issue,
+      reporterEmail: reporter?.email || '',
+      reporterUsername: reporter?.username || '',
       // If a file was uploaded, generate its URL using your existing normalizer. Otherwise, leave empty.
       fileUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : '')
     });
@@ -1234,10 +1674,99 @@ app.post('/api/reports', upload.single('file'), async (req, res) => {
   }
 });
 
+app.put('/api/reports/:id/resolve', async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found.' });
+
+    if (!report.resolved) {
+      report.resolved = true;
+      report.resolvedAt = new Date();
+      await report.save();
+    }
+
+    const reporter = report.reporterUsername
+      ? { username: report.reporterUsername }
+      : report.reporterEmail
+        ? await Profile.findOne({
+          email: { $regex: `^${escapeRegex(normalizeEmail(report.reporterEmail))}$`, $options: 'i' }
+        }).select('username')
+        : null;
+
+    if (reporter?.username) {
+      const recipient = normalizeHandle(reporter.username);
+      await Notification.findOneAndUpdate(
+        { recipient, type: 'mail', sourceId: `report:${report._id}:resolved` },
+        {
+          $set: {
+            actor: 'JuanCast',
+            subject: `Your report was resolved: ${report.subject}`,
+            preview: 'The issue you reported has been marked as resolved. Thank you for helping us improve JuanCast.',
+            isRead: false
+          },
+          $setOnInsert: {
+            recipient,
+            type: 'mail',
+            sourceId: `report:${report._id}:resolved`
+          }
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+    }
+
+    res.status(200).json({ message: 'Report resolved and reporter notified.', report });
+  } catch (error) {
+    console.error('Error resolving report:', error);
+    res.status(500).json({ message: 'Failed to resolve report.' });
+  }
+});
+
+app.post('/api/reports/:id/messages', async (req, res) => {
+  try {
+    const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+    if (!message) return res.status(400).json({ message: 'A message is required.' });
+    if (message.length > 2000) return res.status(400).json({ message: 'Message must be 2,000 characters or fewer.' });
+
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found.' });
+
+    const reporter = report.reporterUsername
+      ? { username: report.reporterUsername }
+      : report.reporterEmail
+        ? await Profile.findOne({
+          email: { $regex: `^${escapeRegex(normalizeEmail(report.reporterEmail))}$`, $options: 'i' }
+        }).select('username')
+        : null;
+    if (!reporter?.username) {
+      return res.status(400).json({ message: 'This report is not linked to a user account, so a Mail message cannot be delivered.' });
+    }
+
+    const reportMessage = { message, createdAt: new Date() };
+    report.messages.push(reportMessage);
+    await report.save();
+
+    const recipient = normalizeHandle(reporter.username);
+    const savedMessage = report.messages[report.messages.length - 1];
+    const notification = await Notification.create({
+      recipient,
+        actor: 'JuanCast',
+        type: 'mail',
+      sourceId: `report:${report._id}:message:${savedMessage._id}`,
+      subject: `A message about your report: ${report.subject}`,
+      preview: message
+    });
+
+    res.status(201).json({ message: 'Message sent to the reporter.', report, notification });
+  } catch (error) {
+    console.error('Error messaging report submitter:', error);
+    res.status(500).json({ message: 'Failed to send message to the reporter.' });
+  }
+});
+
 // Optional GET route if you want to view reports later in your Admin Dashboard
 app.get('/api/reports', async (req, res) => {
   try {
-    const reports = await Report.find().sort({ createdAt: -1 });
+    const reports = await Report.find({ resolved: { $ne: true } }).sort({ createdAt: -1 });
     res.status(200).json(reports);
   } catch (error) {
     console.error('Error fetching reports:', error);
@@ -1250,7 +1779,8 @@ app.get('/api/reports', async (req, res) => {
 // ==========================================
 const settingsSchema = new mongoose.Schema({
   featuredGroup: { type: String, default: '' },
-  featuredCategory: { type: String, default: '' }
+  featuredCategory: { type: String, default: '' },
+  featuredChikaId: { type: String, default: '' }
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -1269,8 +1799,15 @@ app.put('/api/settings', async (req, res) => {
     let settings = await Settings.findOne();
     if (!settings) settings = await Settings.create({});
     
-    settings.featuredGroup = req.body.featuredGroup || '';
-    settings.featuredCategory = req.body.featuredCategory || '';
+    if (Object.hasOwn(req.body, 'featuredGroup')) {
+      settings.featuredGroup = req.body.featuredGroup || '';
+    }
+    if (Object.hasOwn(req.body, 'featuredCategory')) {
+      settings.featuredCategory = req.body.featuredCategory || '';
+    }
+    if (Object.hasOwn(req.body, 'featuredChikaId')) {
+      settings.featuredChikaId = req.body.featuredChikaId || '';
+    }
     
     await settings.save();
     res.status(200).json(settings);

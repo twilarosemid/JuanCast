@@ -12,6 +12,7 @@ import PollDetail from './pollpagesrc/PollDetail';
 import AllVideos from './YoutubeContent/AllVideos'; 
 import CommunityPage from './landingpagesrc/CommunityPage';
 import MarketPage from './landingpagesrc/MarketPage';
+import TransactionsPage from './landingpagesrc/TransactionsPage';
 
 import Settings from './components/settings/Settings'; 
 import TermsAndConditions from './components/settings/TermsAndConditions';
@@ -21,6 +22,7 @@ import FAQ from './components/settings/FAQ';
 import ReportIssue from './components/settings/ReportIssue';
 
 import Login from './Login';
+import ForgotPassword from './ForgotPassword';
 import SignUp from './SignUp';
 import SignUpStep2 from './SignUpStep2';
 import SignUpStep3 from './SignUpStep3';
@@ -40,6 +42,7 @@ function App() {
           <Route path="videos" element={<AllVideos />} />
           <Route path="community" element={<CommunityPage />} />
           <Route path="market" element={<MarketPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
           
           {/* Settings Routes */}
           <Route path="settings" element={<Settings />} />
@@ -61,6 +64,7 @@ function App() {
 
         {/* --- STANDALONE ROUTES (No sidebars) --- */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signup-step-2" element={<SignUpStep2 />} />

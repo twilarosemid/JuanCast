@@ -64,30 +64,22 @@
   color: #111827;
 }
 
-.nav-notification-toggle svg {
+.nav-notification-toggle img {
   width: 19px;
   height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: contain;
 }
 
 .notification-count {
   position: absolute;
-  top: -4px;
-  right: -5px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  top: 2px;
+  right: 2px;
+  width: 9px;
+  height: 9px;
   border-radius: 999px;
+  border: 1px solid #fff;
   background: #dc2626;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 16px;
-  text-align: center;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12);
 }
 
 .notification-dropdown {
@@ -269,14 +261,10 @@
   color: #4b5563;
 }
 
-.calendar-icon svg {
+.calendar-icon img {
   width: 19px;
   height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: contain;
 }
 
 @media (max-width: 680px) {

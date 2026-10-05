@@ -36,6 +36,17 @@
   width: 100%;
 }
 
+.community-chat-feed {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.community-chat-feed > .chat-list {
+  gap: 18px;
+}
+
 .community-content-stack {
   display: flex;
   flex-direction: column;
@@ -85,4 +96,3 @@
     width: auto;
   }
 }
-

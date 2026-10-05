@@ -46,8 +46,9 @@ const LandingLayout = () => {
   const isSettingsPage = location.pathname.startsWith('/settings');
   const isCommunityPage = location.pathname.startsWith('/community');
   const isMarketPage = location.pathname.startsWith('/market');
+  const isTransactionsPage = location.pathname.startsWith('/transactions');
   const isFullWidthPage = ['/polls', '/videos'].some(path => location.pathname.startsWith(path));
-  const isCenterOnlyPage = isFullWidthPage || isCommunityPage || isMarketPage;
+  const isCenterOnlyPage = isFullWidthPage || isCommunityPage || isMarketPage || isTransactionsPage;
 
   useEffect(() => {
     const syncLoggedInUser = () => {
@@ -83,8 +84,11 @@ const LandingLayout = () => {
   const chatUsername = loggedInUser ? `@${loggedInUser.username}` : "Guest";
 
   const handleOpenModal = (text, avatar, refreshCallback) => {
+    if (!loggedInUser?.email) {
+      navigate('/login');
+      return;
+    }
     if (!text.trim()) return;
-    if (!loggedInUser) return alert("Please log in to post in the community chat!");
     setPendingPost({ text, avatar });
     setTriggerRefresh(() => refreshCallback);
     setShowModal(true); 
@@ -114,7 +118,9 @@ const LandingLayout = () => {
   // --- RESTORED CUSTOM REWARD LOGIC ---
   const handleClaimDailyReward = async (day, value, currency) => {
     if (!loggedInUser?.email) {
-      return "Please log in to claim daily rewards."; 
+      setIsDailyOpen(false);
+      navigate('/login');
+      return false;
     }
 
     try {
@@ -165,14 +171,14 @@ const LandingLayout = () => {
         <div 
           className="landing-grid" 
           style={
-            isSettingsPage ? { display: 'flex', justifyContent: 'center' } : 
+            isSettingsPage || isTransactionsPage ? { display: 'flex', justifyContent: 'center' } :
             isFullWidthPage ? { display: 'flex', width: '100%' } : 
             {}
           }
         >
           
           {/* Hide side panels on settings and browse pages */}
-          {!isSettingsPage && !isFullWidthPage && (
+          {!isSettingsPage && !isFullWidthPage && !isTransactionsPage && (
             <aside className="panel left-panel fixed-sidebar">
               {isCommunityPage ? (
                 <nav className="community-section-nav" aria-label="Community sections">
@@ -211,7 +217,8 @@ const LandingLayout = () => {
           <main 
             className="center-panel scrollable-center" 
             style={
-              isSettingsPage ? { width: '100%', maxWidth: '800px' } : 
+              isSettingsPage ? { width: '100%', maxWidth: '800px' } :
+              isTransactionsPage ? { width: '100%', maxWidth: '1100px', flex: 1, padding: '18px 24px' } :
               isFullWidthPage ? { width: '100%', maxWidth: '100%', flex: 1, padding: '0 20px' } : 
               {}
             }
@@ -229,7 +236,7 @@ const LandingLayout = () => {
 
           {!isSettingsPage && !isCenterOnlyPage && (
             <aside className="panel right-panel fixed-sidebar">
-              <ChikaPanel />
+              <ChikaPanel featuredLayout={false} />
             </aside>
           )}
 

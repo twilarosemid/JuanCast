@@ -50,7 +50,7 @@ const Settings = () => {
         </div>
 
         <div className="settings-action-buttons">
-          <button className="settings-btn btn-forgot">Forgot Password</button>
+          <button className="settings-btn btn-forgot" onClick={() => navigate('/forgot-password')}>Forgot Password</button>
           <button className="settings-btn btn-deactivate">Deactivate Account</button>
         </div>
 

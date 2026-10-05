@@ -35,7 +35,10 @@ const AllVideos = () => {
     fetchVideos();
   }, []);
 
-  const availableGroups = ['ALL', ...new Set(videos.map(v => v.group).filter(Boolean))].sort();
+  const availableGroups = [
+    'ALL',
+    ...[...new Set(videos.map(v => v.group).filter(group => group && group !== 'ALL'))].sort((a, b) => a.localeCompare(b))
+  ];
 
   const filteredVideos = videos.filter(v => {
     const matchesGroup = activeFilter === 'ALL' || v.group === activeFilter;

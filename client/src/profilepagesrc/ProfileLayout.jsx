@@ -30,7 +30,10 @@ const ProfileLayout = () => {
       onCalendarClick={requestDailyOpen}
     >
       <div className="profile-content-container">
-        <Outlet context={{ dailyOpenRequest, consumeDailyOpenRequest }} />
+        <Outlet context={{
+          dailyOpenRequest,
+          consumeDailyOpenRequest
+        }} />
       </div>
     </Layout>
   );
