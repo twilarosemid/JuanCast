@@ -41,7 +41,7 @@ const TransactionsPage = () => {
     if (!email) return;
 
     try {
-      const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/transactions?email=${encodeURIComponent(email)}`, { signal });
+      const response = await fetch(`[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/transactions?email=${encodeURIComponent(email)}`, { signal });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'Could not load transactions.');
       if (!Array.isArray(result)) throw new Error('The transaction service returned an unexpected response.');

@@ -73,7 +73,7 @@ const Layout = ({
     let isActive = true;
     const loadNotifications = async () => {
       try {
-        const response = await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/notifications?username=${encodeURIComponent(username)}`);
+        const response = await fetch(`[https://juancast.onrender.com](https://juancast.onrender.com)/api/notifications?username=${encodeURIComponent(username)}`);
         if (!response.ok) throw new Error('Failed to load notifications');
         const data = await response.json();
         if (isActive) setNotifications(Array.isArray(data) ? data : []);
@@ -102,7 +102,7 @@ const Layout = ({
       item._id === notification._id ? { ...item, isRead: true } : item
     ));
     try {
-      await fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/notifications/${notification._id}/read`, {
+      await fetch(`[https://juancast.onrender.com](https://juancast.onrender.com)/api/notifications/${notification._id}/read`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: notificationUser.username })
@@ -138,7 +138,7 @@ const Layout = ({
 
     const username = String(notification.actor || '').replace(/^@/, '');
     try {
-      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/follow', {
+      const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/follow', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: notificationUser.email, username })

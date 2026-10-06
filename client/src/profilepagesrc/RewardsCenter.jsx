@@ -73,7 +73,7 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
     }
 
     const controller = new AbortController();
-    fetch(`http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/swerte-spin-status?email=${encodeURIComponent(loggedInUser.email)}`, {
+    fetch(`[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/swerte-spin-status?email=${encodeURIComponent(loggedInUser.email)}`, {
       signal: controller.signal
     })
       .then(async response => {
@@ -108,7 +108,7 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
     setIsSpinning(true);
     setSpinMessage('');
     try {
-      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/swerte-spin', {
+      const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/swerte-spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loggedInUser.email })
@@ -160,7 +160,7 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
 
       setRedeemingRewardId(item.id);
       try {
-        const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/market-spin-bonus', {
+        const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/market-spin-bonus', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: loggedInUser.email, rewardId: item.id })

@@ -96,7 +96,7 @@ const LandingLayout = () => {
 
   const confirmPost = async () => {
     try {
-      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts', {
+      const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: chatUsername, avatar: pendingPost.avatar, text: pendingPost.text }) 
@@ -124,7 +124,7 @@ const LandingLayout = () => {
     }
 
     try {
-      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/daily-claim', {
+      const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/users/daily-claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

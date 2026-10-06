@@ -21,7 +21,7 @@ const AllVideos = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/videos?platform=YouTube');
+        const res = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/videos?platform=YouTube');
         if (res.ok) {
           const data = await res.json();
           setVideos(data);

@@ -55,7 +55,7 @@ const SignUpStep3 = () => {
 
     try {
       // Send data to your Node.js backend
-      const response = await fetch('http://[https://juancast.onrender.com](https://juancast.onrender.com)/api/request-otp', {
+      const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, phone: activeCountry.code + phone, password })
