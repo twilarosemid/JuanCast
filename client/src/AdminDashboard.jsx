@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import './components/css/AdminDashboard.css';
 
-const API_BASE = '[https://juancast.onrender.com](https://juancast.onrender.com)';
+const API_BASE = 'https://juancast.onrender.com';
 
 const emptyForms = {
   rankings: { name: '', position: '1', group: '', category: '', youtubeUrl: '', youtubeStartTime: 0, image: null },

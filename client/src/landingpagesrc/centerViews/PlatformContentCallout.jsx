@@ -9,7 +9,7 @@ const PlatformContentCallout = ({ platform }) => {
   useEffect(() => {
     const loadPlatformContent = async () => {
       try {
-        const response = await fetch(`[https://juancast.onrender.com](https://juancast.onrender.com)/api/videos?platform=${encodeURIComponent(platform)}`);
+        const response = await fetch(`https://juancast.onrender.com/api/videos?platform=${encodeURIComponent(platform)}`);
         if (!response.ok) throw new Error(`Failed to load ${platform} content`);
         const data = await response.json();
         const platformItems = Array.isArray(data)

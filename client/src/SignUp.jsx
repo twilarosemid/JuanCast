@@ -53,7 +53,7 @@ const SignUp = () => {
 
     try {
       // Ask the backend if the username is taken
-      const response = await fetch('http:/[https://juancast.onrender.com](https://juancast.onrender.com)/api/check-username', {
+      const response = await fetch('https://juancast.onrender.com/api/check-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })

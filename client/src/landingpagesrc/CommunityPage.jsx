@@ -19,7 +19,7 @@ const CommunityPage = () => {
     const loadContentItems = async () => {
       setContentLoading(true);
       try {
-        const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/videos?platform=all');
+        const response = await fetch('https://juancast.onrender.com/api/videos?platform=all');
         if (!response.ok) throw new Error('Failed to load platform content');
         const data = await response.json();
         setContentItems(Array.isArray(data) ? data : []);

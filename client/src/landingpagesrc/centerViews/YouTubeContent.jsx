@@ -17,7 +17,7 @@ const YouTubeContent = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/videos');
+        const response = await fetch('https://juancast.onrender.com/api/videos');
         if (!response.ok) throw new Error('Failed to load videos');
         
         const data = await response.json();

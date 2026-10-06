@@ -23,9 +23,9 @@ const RankingsView = () => {
     const loadData = async () => {
       try {
         const [rankingsRes, settingsRes, pollsRes] = await Promise.all([
-          fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/rankings'),
-          fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/settings'),
-          fetch('[https://juancast.onrender.com](https://juancast.onrender.com)/api/polls')
+          fetch('https://juancast.onrender.com/api/rankings'),
+          fetch('https://juancast.onrender.com/api/settings'),
+          fetch('https://juancast.onrender.com/api/polls')
         ]);
 
         if (rankingsRes.ok) {
