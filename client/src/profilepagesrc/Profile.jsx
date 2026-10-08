@@ -94,7 +94,10 @@ const Profile = () => {
   }, [dailyOpenRequest, consumeDailyOpenRequest]);
 
   const normalizeUserHandle = (value = '') => (value || '').replace(/^@/, '').trim().toLowerCase();
-  const isOwnProfile = !routeUsername || normalizeUserHandle(routeUsername) === normalizeUserHandle(loggedInUser?.username || user.username);
+  const viewerHandle = normalizeUserHandle(loggedInUser?.username || '');
+  const isOwnProfile = Boolean(loggedInUser) && (
+    !routeUsername || normalizeUserHandle(routeUsername) === viewerHandle
+  );
 
   const handleFollowToggle = async () => {
     if (!loggedInUser?.email) {
@@ -118,7 +121,7 @@ const Profile = () => {
       }
 
       setIsFollowing(Boolean(data.isFollowing));
-      setFollowersCount(Number(data.followersCount || followersCount + (data.isFollowing ? 1 : -1)));
+      setFollowersCount(Number(data.followersCount ?? followersCount + (data.isFollowing ? 1 : -1)));
     } catch (error) {
       console.error('Error toggling follow:', error);
       alert(error.message || 'Unable to update follow status.');
@@ -480,9 +483,9 @@ const Profile = () => {
               </div>
             )}
 
-            {!isOwnProfile && loggedInUser && (
+            {!isOwnProfile && routeUsername && (
               <ProfileActionButton
-                label={isFollowing ? 'Following' : 'Follow'}
+                label={isFollowing ? 'Unfollow' : 'Follow'}
                 variant={isFollowing ? 'primary' : 'default'}
                 onClick={handleFollowToggle}
               />
