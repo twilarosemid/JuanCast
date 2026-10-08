@@ -3,14 +3,6 @@ import './css/ChikaPanel.css';
 
 const latestChikaLogo = new URL('../assets/latest_chika_logo.webp?v=20260922', import.meta.url).href;
 
-const fallbackArticle = {
-  _id: 'fallback-chika',
-  title: "Seo In Guk charms Filo Heartriders in 'Heart Cookie' Manila fanmeet",
-  description: "Korean singer-actor Seo In Guk charmed fans with his 'Heart Cookie' Asia tour fan meeting on Saturday, drawing a strong Filo crowd and glowing reactions online.",
-  imageUrl: '',
-  url: 'https://latestchika.com/just-in/2025/09/24/117910/seo-in-guk-charms-filo-heartriders-in-heart-cookie-manila-fanmeet/'
-};
-
 // Sub-component for individual articles
 const ChikaCard = ({ chika, logoUrl, featured = false }) => {
   const openArticle = (url) => {
