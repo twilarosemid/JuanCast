@@ -7,7 +7,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { getPollDisplayTitle, sortRankings } = require('./contentUtils');
+const { getPollDisplayTitle, sortRankings, normalizeImageUrl } = require('./contentUtils');
 require('dotenv').config();
 
 const app = express();
@@ -233,14 +233,6 @@ const updateRankingPositions = async () => {
       }
     }
   }
-};
-
-const normalizeImageUrl = (value = '') => {
-  if (!value) return '';
-  if (/^https?:\/\//i.test(value)) return value;
-  const cleanPath = value.startsWith('/') ? value : `/${value}`;
-  const formattedPath = cleanPath.startsWith('/uploads/') ? cleanPath : `/uploads/${cleanPath.replace(/^\//, '')}`;
-  return `https://juancast.onrender.com${formattedPath}`;
 };
 
 const seedChikaArticles = async () => {
@@ -1244,6 +1236,14 @@ app.delete('/api/rankings/:id', async (req, res) => {
 // Authentication Routes
 app.post('/api/forgot-password', async (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+    const configuredClientUrl = process.env.CLIENT_URL?.trim();
+    if (isProduction && !configuredClientUrl) {
+      console.error('CLIENT_URL must be configured for password reset emails in production.');
+      return res.status(500).json({ message: 'Password reset is temporarily unavailable. Please contact support.' });
+    }
+
+    const clientUrl = (configuredClientUrl || 'http://localhost:5173').replace(/\/+$/, '');
     const normalizedEmail = normalizeEmail(req.body.email || '');
     if (!normalizedEmail) return res.status(400).json({ message: 'Email is required.' });
 
@@ -1261,7 +1261,6 @@ app.post('/api/forgot-password', async (req, res) => {
     user.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
 
-    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
     const resetUrl = `${clientUrl}/forgot-password?token=${encodeURIComponent(resetToken)}`;
     try {
       await transporter.sendMail({
@@ -1475,7 +1474,7 @@ app.get('/api/videos', async (req, res) => {
         ? { $or: [{ platform: 'YouTube' }, { platform: { $exists: false } }, { platform: '' }] }
         : { platform };
     const videos = await Video.find(filter).sort({ createdAt: -1 });
-    res.status(200).json(videos);
+    res.status(200).json(videos.map((video) => serializeImage(video.toObject())));
   } catch (error) {
     console.error('Error fetching videos:', error);
     res.status(500).json({ error: 'Failed to fetch videos' });
@@ -1493,7 +1492,7 @@ app.post('/api/videos', upload.single('image'), async (req, res) => {
       youtubeUrl: youtubeUrl || '',
       imageUrl: normalizeImageUrl(req.file ? `/uploads/${req.file.filename}` : ''),
     });
-    res.status(201).json(newVideo);
+    res.status(201).json(serializeImage(newVideo.toObject()));
   } catch (error) {
     console.error('Error creating video:', error);
     res.status(500).json({ error: 'Failed to create video' });
@@ -1513,7 +1512,7 @@ app.put('/api/videos/:id', upload.single('image'), async (req, res) => {
     if (req.file) video.imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
 
     await video.save();
-    res.status(200).json(video);
+    res.status(200).json(serializeImage(video.toObject()));
   } catch (error) {
     console.error('Error updating video:', error);
     res.status(500).json({ error: 'Failed to update video' });
@@ -1536,7 +1535,7 @@ app.get('/api/banners', async (req, res) => {
   try {
     const banners = await Banner.find().sort({ createdAt: -1 });
 
-    return res.status(200).json(banners);
+    return res.status(200).json(banners.map((banner) => serializeImage(banner.toObject())));
   } catch (error) {
     console.error('Error fetching banners:', error);
 
@@ -1564,8 +1563,7 @@ app.post('/api/banners', (req, res) => {
     }
 
     try {
-      const imageUrl =
-        `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      const imageUrl = normalizeImageUrl(`/uploads/${req.file.filename}`);
 
       const newBanner = await Banner.create({
         imageUrl,
@@ -1573,7 +1571,7 @@ app.post('/api/banners', (req, res) => {
         altText: req.body.altText || 'Promo Banner'
       });
 
-      return res.status(201).json(newBanner);
+      return res.status(201).json(serializeImage(newBanner.toObject()));
     } catch (error) {
       console.error('Error saving banner:', error);
 
@@ -1767,7 +1765,10 @@ app.post('/api/reports/:id/messages', async (req, res) => {
 app.get('/api/reports', async (req, res) => {
   try {
     const reports = await Report.find({ resolved: { $ne: true } }).sort({ createdAt: -1 });
-    res.status(200).json(reports);
+    res.status(200).json(reports.map((report) => ({
+      ...report.toObject(),
+      fileUrl: normalizeImageUrl(report.fileUrl)
+    })));
   } catch (error) {
     console.error('Error fetching reports:', error);
     res.status(500).json({ error: 'Failed to fetch reports' });

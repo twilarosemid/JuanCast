@@ -44,7 +44,7 @@ const ChikaCard = ({ chika, logoUrl, featured = false }) => {
 
 // Main container component
 const ChikaPanel = ({ featuredLayout = true }) => {
-  const [articles, setArticles] = useState([fallbackArticle]);
+  const [articles, setArticles] = useState([]);
   const [headlineId, setHeadlineId] = useState('');
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const ChikaPanel = ({ featuredLayout = true }) => {
         if (!response.ok) throw new Error('Failed to load Chika articles');
 
         const data = await response.json();
-        setArticles(Array.isArray(data) && data.length > 0 ? data : [fallbackArticle]);
+        setArticles(Array.isArray(data) ? data : []);
 
         try {
           const settingsResponse = await fetch('https://juancast.onrender.com/api/settings');
@@ -66,7 +66,7 @@ const ChikaPanel = ({ featuredLayout = true }) => {
         }
       } catch (error) {
         console.error('Error fetching Chika articles:', error);
-        setArticles([fallbackArticle]);
+        setArticles([]);
       }
     };
 

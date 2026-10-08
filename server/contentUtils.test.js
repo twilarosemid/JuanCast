@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getPollDisplayTitle, sortRankings } = require('./contentUtils');
+const { getPollDisplayTitle, sortRankings, normalizeImageUrl } = require('./contentUtils');
 
 test('getPollDisplayTitle appends Ended for past events', () => {
   const title = getPollDisplayTitle('K-pop Concert', new Date('2024-01-10T00:00:00Z'));
@@ -21,4 +21,23 @@ test('sortRankings orders by rank position and vote count', () => {
 
   assert.deepEqual(sortRankings(rankings).map((item) => item.position), [1, 2, 3]);
   assert.equal(sortRankings(rankings)[1].voteCount, 7000);
+});
+
+test('normalizeImageUrl points localhost uploads to the deployed server', () => {
+  assert.equal(
+    normalizeImageUrl('http://localhost:5000/uploads/photo.jpg'),
+    'https://juancast.onrender.com/uploads/photo.jpg'
+  );
+});
+
+test('normalizeImageUrl preserves external image URLs and data URLs', () => {
+  assert.equal(normalizeImageUrl('https://images.example.com/photo.jpg'), 'https://images.example.com/photo.jpg');
+  assert.equal(normalizeImageUrl('data:image/png;base64,abc123'), 'data:image/png;base64,abc123');
+});
+
+test('normalizeImageUrl resolves relative upload paths to the deployed server', () => {
+  assert.equal(
+    normalizeImageUrl('/uploads/photo.jpg'),
+    'https://juancast.onrender.com/uploads/photo.jpg'
+  );
 });

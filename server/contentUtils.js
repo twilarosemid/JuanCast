@@ -17,7 +17,32 @@ function sortRankings(rankings = []) {
   });
 }
 
+function normalizeImageUrl(value = '') {
+  if (!value) return '';
+
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      const url = new URL(value);
+      const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+      return isLocalhost
+        ? `https://juancast.onrender.com${url.pathname}${url.search}${url.hash}`
+        : value;
+    } catch {
+      return value;
+    }
+  }
+
+  if (/^[a-z][a-z\d+.-]*:/i.test(value)) return value;
+
+  const cleanPath = value.startsWith('/') ? value : `/${value}`;
+  const formattedPath = cleanPath.startsWith('/uploads/')
+    ? cleanPath
+    : `/uploads/${cleanPath.replace(/^\//, '')}`;
+  return `https://juancast.onrender.com${formattedPath}`;
+}
+
 module.exports = {
   getPollDisplayTitle,
-  sortRankings
+  sortRankings,
+  normalizeImageUrl
 };
