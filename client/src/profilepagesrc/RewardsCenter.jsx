@@ -49,8 +49,6 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
   const [swerteSpinsRemaining, setSwerteSpinsRemaining] = useState(null);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [spinMessage, setSpinMessage] = useState('');
-  const [rewardMessage, setRewardMessage] = useState('');
   const [redeemingRewardId, setRedeemingRewardId] = useState(null);
   const storageKey = `juancast_rewards_${encodeURIComponent(loggedInUser?.email || 'guest')}`;
   const hasSpunToday = swerteSpinsRemaining === 0;
@@ -82,7 +80,10 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
         setSwerteSpinsRemaining(result.spinsRemaining);
       })
       .catch(error => {
-        if (error.name !== 'AbortError') setSpinMessage(error.message || 'Could not load Swerte spins.');
+        if (error.name !== 'AbortError') {
+          // CHANGED: Now alerts instead of console.error
+          alert(error.message || 'Could not load Swerte spins.');
+        }
       });
 
     return () => controller.abort();
@@ -106,7 +107,6 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
     if (isSpinning || swerteSpinsRemaining !== 1) return;
 
     setIsSpinning(true);
-    setSpinMessage('');
     try {
       const response = await fetch('https://juancast.onrender.com/api/users/swerte-spin', {
         method: 'POST',
@@ -140,9 +140,9 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
         used: false
       };
       saveRewardState([wonItem, ...inventory], nextRotation);
-      setSpinMessage(`${prize.title} added to your Bayong.`);
+      alert(`${prize.title} added to your Bayong.`);
     } catch (error) {
-      setSpinMessage(error.message || 'Could not use your Swerte spin.');
+      alert(error.message || 'Could not use your Swerte spin.');
     } finally {
       setIsSpinning(false);
     }
@@ -151,7 +151,6 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
   const handleUseReward = async (item) => {
     if (item.used || redeemingRewardId) return;
 
-    setRewardMessage('');
     if (item.key === 'spins') {
       if (!loggedInUser?.email) {
         navigate('/login');
@@ -171,9 +170,9 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
         window.dispatchEvent(new CustomEvent('juancast-market-spin-updated', {
           detail: { email: loggedInUser.email, spinsRemaining: result.spinsRemaining }
         }));
-        setRewardMessage(`20 Market spins added. You now have ${result.spinsRemaining} spins.`);
+        alert(`20 Market spins added. You now have ${result.spinsRemaining} spins.`);
       } catch (error) {
-        setRewardMessage(error.message || 'Could not add Market spins.');
+        alert(error.message || 'Could not add Market spins.');
         return;
       } finally {
         setRedeemingRewardId(null);
@@ -249,7 +248,6 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
           >
             {!loggedInUser?.email ? 'Log in to Spin' : isSpinning ? 'Spinning...' : swerteSpinsRemaining === null ? 'Loading Spins...' : hasSpunToday ? 'Already Spun Today' : 'Spin the Wheel'}
           </button>
-          <p className="rewards-wheel-message" role="status">{spinMessage || '\u00a0'}</p>
         </section>
       );
     }
@@ -288,7 +286,6 @@ const RewardsCenter = ({ loggedInUser, dailyStreak = 0, onClose, onOpenDaily }) 
             <button className="rewards-secondary-button" type="button" onClick={() => setActiveTab('swerte')}>Go to Swerte</button>
           </div>
         )}
-        {rewardMessage && <p className="rewards-redeem-message" role="alert">{rewardMessage}</p>}
       </section>
     );
   };

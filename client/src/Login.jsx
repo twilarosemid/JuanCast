@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Shared.css';
 import './Login.css';
 
-import logo from './assets/juancast_logo.webp';
 import heroIcon from './assets/juancast_icon.webp'; 
 
 const Login = () => {
@@ -19,6 +18,20 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const activeUser = localStorage.getItem('juancast_user');
+    if (activeUser) {
+      try {
+        const user = JSON.parse(activeUser);
+        if (user?.email) {
+          navigate(user?.isAdmin ? '/admin' : '/', { replace: true });
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to parse active user:', error);
+        localStorage.removeItem('juancast_user');
+      }
+    }
+
     const savedLogin = localStorage.getItem('juancast_remembered_user');
     if (!savedLogin) return;
 
@@ -33,7 +46,7 @@ const Login = () => {
       console.error('Failed to load remembered login:', error);
       localStorage.removeItem('juancast_remembered_user');
     }
-  }, []);
+  }, [navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -95,7 +108,6 @@ const Login = () => {
       
       <div className="login-right">
         <div className="login-content">
-          <img src={logo} alt="JuanCast Logo" className="logo" /> 
           <h1 className="login-title">Account Login</h1>
           
           <form className="login-form" onSubmit={handleLogin}>

@@ -1,13 +1,11 @@
 /* --- SHARED LAYOUT & ASSETS --- */
 
-/* 1. Global Reset - Safely reset margins and padding */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* 1b. ONLY apply 100% width/height to the main wrappers, NOT everything */
 html, body, #root {
   width: 100%;
   height: 100%;
@@ -15,7 +13,6 @@ html, body, #root {
 
 /* 2. Main Split-Screen Container */
 .login-container {
-/* ... the rest of your CSS stays exactly the same ... */
   display: flex;
   flex-direction: row; 
   height: 100vh;
@@ -24,7 +21,7 @@ html, body, #root {
   overflow: hidden; 
 }
 
-/* 3. Left Half */
+/* 3. Left Half (Desktop) */
 .login-left {
   flex: 1; 
   background-image: url('./assets/background_portrait.png'); 
@@ -44,7 +41,7 @@ html, body, #root {
   filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.3));
 }
 
-/* 4. Right Half & Form Container */
+/* 4. Right Half & Form Container (Desktop) */
 .login-right {
   flex: 1; 
   background-color: white;
@@ -61,93 +58,114 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
-/* 5. Shared Form Elements */
+/* 5. Shared Typography & Elements */
 .logo {
   width: 220px;
   margin-bottom: 25px;
 }
 
 .login-title {
-  margin: 0 0 30px 0;
+  margin: 0 0 20px 0;
   font-size: 28px;
   font-weight: 700;
   color: #000;
+  text-align: center;
 }
 
 .login-form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  flex: 1; /* Forces the form to stretch, pinning the button to the bottom */
+  gap: 14px;
 }
 
-.login-input {
-  width: 100%;
-  padding: 15px 20px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-  outline: none;
-  transition: box-shadow 0.2s;
+/* IDENTICAL INPUTS (PURE WHITE, BORDERLESS, DEEP SHADOW) */
+.login-input,
+.select-input {
+  width: 100% !important;
+  border: none !important;
+  outline: none !important;
+  background-color: #ffffff !important;
+  border-radius: 50px !important;
+  
+  /* 1. Explicitly set font instead of 'inherit' to prevent blur glitches */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  
+  font-size: 14px !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  
+  /* 2. Removed 'transform' from transition to stop repaint bugs */
+  transition: box-shadow 0.2s ease !important; 
+  
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  
+  /* 3. Forces the browser to keep the text painted when window loses focus */
+  transform: translateZ(0); 
 }
 
-.login-input:focus {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2); 
+.login-input::placeholder {
+  color: #555555;
+  font-size: 14px;
 }
 
+.login-input:focus,
+.select-input:focus {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* IDENTICAL PRIMARY BUTTON (WHITE WITH BLUE TEXT) */
 .login-button {
   width: 100%;
-  padding: 15px;
+  padding: 13px;
   border: none;
-  border-radius: 25px;
-  background-color: white;
+  border-radius: 50px;
+  background-color: #ffffff;
   color: #5b7cfa;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   transition: transform 0.1s, box-shadow 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .login-button:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .version {
   margin-top: 15px;
   font-size: 12px;
   color: #666;
+  text-align: center;
 }
 
-/* 6. Mobile Responsiveness */
-@media (max-width: 768px) {
-  .login-container { flex-direction: column; }
-  .login-left { flex: 0.4; }
-  .login-right { flex: 0.6; }
-  .hero-icon { max-width: 250px; }
-}   
-
-/* Move these from Login.css to Shared.css */
-.input-group {
-  position: relative;
-  width: 100%;
-}
-
+.input-group,
 .password-group {
   position: relative;
+  width: 100%;
+  display: block; 
 }
 
 .password-toggle {
   position: absolute;
-  right: 15px;
+  right: 18px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: transparent; 
   border: none;
   cursor: pointer;
   color: #666;
@@ -155,19 +173,137 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Disabled state for the NEXT button */
-.login-button:disabled {
-  background-color: #d1d1d1; /* Dark grey */
-  color: #888888; /* Dimmed text */
-  box-shadow: none; /* Flat, no pop */
-  cursor: not-allowed; /* Gives the user a 'stop' cursor */
-  opacity: 0.7; /* Makes the whole button slightly faded/blurred */
-  transform: none; /* Stops it from pressing down */
-}
-
-.error-message {
-  color: red;
+  padding: 0;
   margin: 0;
+  width: auto;
+  height: auto;
+  z-index: 10; 
+  outline: none;
+}
+
+/* 6. Desktop Field Adjustments */
+@media (min-width: 769px) {
+  .login-input,
+  .select-input {
+    padding: 15px 20px !important;
+    font-size: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .login-button {
+    padding: 15px;
+    border-radius: 25px;
+    font-size: 16px;
+  }
+}
+
+/* 7. Mobile Matching */
+@media (max-width: 768px) {
+  html, body, #root {
+    overflow: hidden;
+  }
+
+  .login-container { 
+    display: flex !important; 
+    flex-direction: column;
+    justify-content: center !important;
+    align-items: center;
+    height: 100dvh; 
+    overflow: hidden !important; 
+    background-image: url('./assets/background_portrait.png'); 
+    background-size: cover;
+    background-position: center;
+    padding: 12px 20px;
+    gap: 8px;
+  }
+  
+  .login-left { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    background: transparent; 
+    height: 130px;
+    width: 100%;
+    margin-bottom: 0;
+    flex: none; 
+  }
+  
+  .hero-icon { 
+    max-width: 165px;
+    max-height: 125px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  .login-right { 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent; 
+    width: 100%;
+    padding: 0;
+    flex: none;
+    overflow: visible;
+  }
+
+  /* One identical container footprint */
+  .login-content {
+    background-color: #ffffff;
+    border-radius: 28px;
+    padding: 24px 20px 36px 20px;
+    width: 100%;
+    max-width: 380px; 
+    height: auto; 
+    margin: 0 auto; 
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+  }
+
+  .login-content .logo {
+    display: none !important;
+    margin: 0 !important;
+    height: 0 !important;
+  }
+
+  .login-title {
+    font-size: 22px; 
+    margin: 0 0 10px 0; 
+    text-align: center;
+  }
+
+  .login-input,
+  .select-input {
+    padding: 12px 20px !important;
+    height: 44px !important;
+    line-height: 20px !important;
+  }
+
+  .password-group .login-input {
+    padding-right: 48px !important;
+  }
+
+  /* Universal placement for the version number */
+  .version {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 11.5px;
+    color: #777;
+    white-space: nowrap;
+  }
+} /* <--- CLOSING BRACKET FOR MOBILE MEDIA QUERY IS HERE */
+
+/* Hide default browser password reveal icon to prevent double-eye overlap (MOVED OUTSIDE MEDIA QUERY) */
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
 }

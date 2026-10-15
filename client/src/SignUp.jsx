@@ -49,28 +49,33 @@ const SignUp = () => {
   // UPDATED: Async function to check the database before navigating
   const handleNext = async (e) => {
     e.preventDefault();
-    setErrorMessage(''); // Clear previous errors
+    setErrorMessage('');
+
+    const trimmedFullName = fullName.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedFullName || !trimmedUsername || !birthdate || !gender) {
+      setErrorMessage('Please complete all fields before continuing.');
+      return;
+    }
 
     try {
-      // Ask the backend if the username is taken
       const response = await fetch('https://juancast.onrender.com/api/check-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({ username: trimmedUsername })
       });
 
       if (response.ok) {
-        // If 200 OK (available), proceed to Step 2
-        navigate('/signup-step-2', { 
-          state: { fullName, username, birthdate, gender } 
-        });
+        const payload = { fullName: trimmedFullName, username: trimmedUsername, birthdate, gender };
+        sessionStorage.setItem('juancast_signup_state', JSON.stringify(payload));
+        navigate('/signup-step-2', { state: payload });
       } else {
-        // If 400 (taken), show the error message and stop
         const data = await response.json();
-        setErrorMessage(data.message);
+        setErrorMessage(data.message || 'This username is not available.');
       }
     } catch (error) {
-      setErrorMessage("Could not connect to the server.");
+      setErrorMessage('Could not connect to the server.');
     }
   };
 
@@ -130,7 +135,7 @@ const SignUp = () => {
               onChange={(e) => setGender(e.target.value)}
               required
             >
-              <option value="" disabled hidden>Select Gender (v)</option>
+              <option value="" disabled hidden>Select Gender</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>

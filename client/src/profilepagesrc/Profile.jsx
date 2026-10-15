@@ -100,8 +100,9 @@ const Profile = () => {
   );
 
   const handleFollowToggle = async () => {
+    // UPDATED: Redirects to login if user is not authenticated
     if (!loggedInUser?.email) {
-      alert('Log in to follow users.');
+      navigate('/login');
       return;
     }
 
@@ -503,8 +504,16 @@ const Profile = () => {
 
       {/* 2-Column Split Section */}
       <div className="profile-columns-wrapper">
-        {/* Left Side: Overview & Features */}
-        <div className="profile-left-subcolumn">
+        
+        {/* Left Side: Overview & Features (NOW STICKY) */}
+        <div 
+          className="profile-left-subcolumn"
+          style={{
+            position: 'sticky',
+            top: '20px', // Adjust this value if you have a fixed header navbar (e.g., to '80px')
+            height: 'fit-content'
+          }}
+        >
           <div className="profile-overview-box">
             <h3 className="overview-title">Activity Overview</h3>
             <div className="overview-stats-grid">

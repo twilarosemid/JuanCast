@@ -1,7 +1,5 @@
 /* --- LOGIN PAGE ONLY --- */
 
-
-
 .remember-me {
   display: flex;
   align-items: center;
@@ -19,12 +17,14 @@
   text-decoration: none;
   font-size: 15px;
   font-style: italic;
+  text-align: center;
 }
 
 .signup-text {
   margin-top: 25px;
   font-size: 15px;
   color: #000;
+  text-align: center;
 }
 
 .signup-link {
@@ -38,7 +38,8 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  font-size: 14px;
+  font-size: 14px; 
+  justify-content: center;
 }
 
 .footer-links a {
@@ -49,4 +50,41 @@
 .divider {
   color: #000;
   font-weight: bold;
+}
+
+/* Mobile Overrides */
+@media screen and (max-width: 768px) {
+  .login-form {
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .remember-me {
+    justify-content: center;
+    align-self: center;
+    margin: 4px 0 10px 0;
+    font-size: 13px;
+  }
+
+  .forgot-password {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .signup-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .footer-links {
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
 }

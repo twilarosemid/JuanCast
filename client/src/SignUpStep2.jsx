@@ -11,9 +11,26 @@
     const SignUpStep2 = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    
-    // Extracting data passed from Step 1
-    const { fullName, username, birthdate, gender } = location.state || {};
+    const storedSignup = sessionStorage.getItem('juancast_signup_state');
+    const savedState = storedSignup ? JSON.parse(storedSignup) : null;
+    const { fullName, username, birthdate, gender } = location.state || savedState || {};
+
+    if (!fullName || !username || !birthdate || !gender) {
+      return (
+        <div className="login-container">
+          <div className="login-left">
+            <img src={heroIcon} alt="JuanCast Hero" className="hero-icon" />
+          </div>
+          <div className="login-right">
+            <div className="login-content">
+              <h1 className="login-title">Account Creation</h1>
+              <p className="error-message">Your signup session expired. Please start again.</p>
+              <button type="button" className="login-button" onClick={() => navigate('/signup')}>START AGAIN</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     
     const [showPassword1, setShowPassword1] = useState(false);
     const [showPassword2, setShowPassword2] = useState(false);
@@ -50,11 +67,21 @@
 
     const handleNext = (e) => {
         e.preventDefault();
-        // Pass everything forward to Step 3
-        navigate('/signup-step-3', { 
-        state: { fullName, username, birthdate, gender, password } 
-        });
-    }; // <-- FIXED: Added the missing closing bracket here
+
+        if (password.length < 6) {
+            setErrorMessage('Password must be at least 6 characters.');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setErrorMessage('Passwords do not match.');
+            return;
+        }
+
+        const payload = { fullName, username, birthdate, gender, password };
+        sessionStorage.setItem('juancast_signup_state', JSON.stringify({ ...savedState, ...payload }));
+        navigate('/signup-step-3', { state: payload });
+    };
 
     const isFormValid = password.length >= 6 && password === confirmPassword;
 

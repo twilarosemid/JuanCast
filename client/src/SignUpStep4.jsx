@@ -9,9 +9,26 @@ import heroIcon from './assets/juancast_icon.webp';
 const SignUpStep4 = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // FIXED: Retrieve ALL data passed from Step 3, not just the email
-  const { email, fullName, username, birthdate, gender } = location.state || {};
+  const storedSignup = sessionStorage.getItem('juancast_signup_state');
+  const savedState = storedSignup ? JSON.parse(storedSignup) : null;
+  const { email, fullName, username, birthdate, gender } = location.state || savedState || {};
+
+  if (!email || !fullName || !username || !birthdate || !gender) {
+    return (
+      <div className="login-container">
+        <div className="login-left">
+          <img src={heroIcon} alt="JuanCast Hero" className="hero-icon" />
+        </div>
+        <div className="login-right">
+          <div className="login-content">
+            <h1 className="login-title">Account Creation</h1>
+            <p className="error-message">Your signup session expired. Please start again.</p>
+            <button type="button" className="login-button" onClick={() => navigate('/signup')}>START AGAIN</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [errorMessage, setErrorMessage] = useState('');
@@ -46,19 +63,24 @@ const SignUpStep4 = () => {
 
   const handleVerify = async (e) => {
     e.preventDefault();
+
+    if (!email || !fullName || !username || !birthdate || !gender) {
+      setErrorMessage('Your signup session expired. Please start again.');
+      navigate('/signup');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
 
-    // Combine the 6 array items into one string (e.g., "123456")
     const enteredOtp = otp.join('');
 
     try {
       const response = await fetch('https://juancast.onrender.com/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // FIXED: Send all the profile data to the Node.js backend
-        body: JSON.stringify({ 
-          email, 
+        body: JSON.stringify({
+          email,
           otp: enteredOtp,
           fullName,
           username,
@@ -70,7 +92,8 @@ const SignUpStep4 = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Account Created Successfully!");
+        sessionStorage.removeItem('juancast_signup_state');
+        alert('Account Created Successfully!');
         navigate('/login');
       } else {
         setErrorMessage(data.message || 'Invalid verification code.');

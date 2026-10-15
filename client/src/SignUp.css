@@ -1,5 +1,11 @@
 /* --- SIGN UP PAGE ONLY --- */
 
+/* 1. LOCKS HEIGHT FOR SIGNUP STEPS 1-4 ONLY */
+/* This guarantees the Next button, Login link, and Version are pinned to the exact same spot */
+.login-content:has(.step-indicator) {
+  height: 600px;
+}
+
 .step-indicator {
   display: flex;
   align-items: center;
@@ -30,38 +36,47 @@
   background-color: #c4c4c4;
 }
 
+/* Custom Dropdown Arrow for standard selects */
 .select-input {
-  appearance: none; 
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position-x: 95%;
-  background-position-y: 50%;
-  color: #757575; 
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>') !important;
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  cursor: pointer;
+  padding-right: 40px !important;
 }
 
-.select-input:not(:invalid) {
-  color: #000;
+.select-input:invalid,
+.select-input option[value=""] {
+  color: #555555 !important;
 }
 
-/* --- UPDATED: Center the checkbox and text --- */
+.select-input option {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+/* Terms checkbox */
 .terms-checkbox {
   display: flex;
-  align-items: center; /* Centers the checkbox vertically with the text */
-  justify-content: center; /* Centers the whole block horizontally */
-  gap: 10px;
-  font-size: 13px;
-  color: #000;
-  margin-top: 5px;
-  margin-bottom: 25px;
-  text-align: center; /* Centers the text itself */
-  line-height: 1.5;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 0 !important; 
+  line-height: 1.35;
+  width: 100%;
+  text-align: center;
 }
 
 .terms-checkbox input {
-  margin-top: 0; /* Removed the previous top margin */
+  margin-top: 0;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
   cursor: pointer;
+  accent-color: #5b7cfa;
 }
 
 .terms-checkbox a {
@@ -70,10 +85,18 @@
   font-weight: 500;
 }
 
-/* --- NEW: Back to Login link styles --- */
+/* 2. PUSHES THE NEXT BUTTON TO THE BOTTOM */
+.login-form .login-button {
+  margin-top: auto !important; 
+}
+
 .back-to-login-text {
-  margin-top: 25px;
-  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 10px;
+  font-size: 14px;
   color: #000;
   text-align: center;
 }
@@ -84,24 +107,85 @@
   font-style: italic;
 }
 
-/* --- NEW: Step 3 Phone Row Styles --- */
+/* Step 3: Phone row */
 .phone-row {
   display: flex;
   gap: 12px;
   width: 100%;
 }
 
-.country-select {
-  width: 35%; /* Keeps the dropdown compact */
-  padding: 15px 10px; 
-  font-size: 15px;
+/* Custom Dropdown Container */
+.custom-dropdown-container {
+  flex: 0 0 35% !important;
+  width: 35% !important;
+  position: relative;
+}
+
+/* The visible button that looks like an input */
+.country-select-display {
+  display: flex !important;
+  align-items: center;
+  padding-left: 15px !important;
+  padding-right: 28px !important;
+  background-position: right 10px center !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* The floating menu */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 250px; 
+  max-height: 220px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 100;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.custom-dropdown-item:hover,
+.custom-dropdown-item.selected {
+  background-color: #f2f5ff;
+}
+
+.dropdown-flag {
+  font-size: 18px;
+}
+
+.dropdown-code {
+  font-weight: 700;
+  color: #5b7cfa;
+  width: 35px;
+}
+
+.dropdown-name {
+  color: #333;
 }
 
 .phone-input {
-  flex: 1; /* Forces the number input to stretch and fill the remaining space */
+  flex: 1 1 auto !important;
+  min-width: 0 !important; 
+  width: 100% !important;
 }
 
-/* --- NEW: Step 4 OTP Styles --- */
+/* Step 4: OTP */
 .otp-title {
   font-size: 22px;
   font-weight: 700;
@@ -127,20 +211,20 @@
 
 .otp-input {
   width: 100%;
-  aspect-ratio: 1/1; /* Keeps the boxes perfectly square */
-  max-width: 55px; /* Prevents them from getting too massive on wide screens */
+  aspect-ratio: 1/1;
+  max-width: 55px;
   text-align: center;
   font-size: 24px;
   font-weight: bold;
   border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   outline: none;
   transition: box-shadow 0.2s, transform 0.1s;
 }
 
 .otp-input:focus {
-  box-shadow: 0 6px 16px rgba(101, 116, 248, 0.3); /* Adds a subtle blue glow when focused */
+  box-shadow: 0 6px 16px rgba(101, 116, 248, 0.3);
   transform: translateY(-2px);
 }
 
@@ -156,4 +240,86 @@
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
+}
+
+/* Mobile Overrides */
+@media screen and (max-width: 768px) {
+  
+  /* LOCKS MOBILE HEIGHT FOR SIGNUPS ONLY */
+  .login-content:has(.step-indicator) {
+    height: 520px;
+  }
+
+  .step-indicator {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .step-circle {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+
+  .step-line {
+    width: 26px;
+  }
+
+  .terms-checkbox {
+    margin-top: 0;
+    margin-bottom: 0 !important;
+  }
+
+  .login-form .login-button {
+    margin-top: auto !important;
+  }
+
+  .back-to-login-text {
+    margin-top: 8px;
+    font-size: 13.5px;
+  }
+
+  .phone-row {
+    gap: 8px;
+  }
+
+  .custom-dropdown-container {
+    flex: 0 0 38% !important;
+    width: 38% !important;
+  }
+  
+  .country-select-display {
+    padding-left: 12px !important;
+    padding-right: 28px !important;
+    font-size: 13.5px !important;
+  }
+
+  .custom-dropdown-menu {
+    width: 230px;
+  }
+
+  .otp-title {
+    font-size: 20px;
+  }
+
+  .otp-subtitle {
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .otp-container {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .otp-input {
+    max-width: 46px;
+    font-size: 20px;
+    border-radius: 10px;
+  }
+
+  .resend-text {
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
 }

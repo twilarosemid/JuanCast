@@ -117,7 +117,11 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
   };
 
   const handleLike = async (postId) => {
-    if (!loggedInUser) return alert("Log in to react!");
+    // UPDATED: Now redirects to login instead of using an alert
+    if (!loggedInUser?.email) {
+      navigate('/login');
+      return;
+    }
 
     const postToLike = posts.find(p => p._id === postId);
     const currentLikes = Array.isArray(postToLike?.likes) ? postToLike.likes : [];
@@ -153,9 +157,15 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
   };
 
   const handleReplySubmit = async (postId) => {
+    // FIXED: Authentication check is now at the top
+    if (!loggedInUser?.email) {
+      navigate('/login');
+      return;
+    }
+
+    // Now it checks for empty text AFTER verifying the user is logged in
     const replyText = replyInputs[postId];
     if (!replyText || !replyText.trim()) return;
-    if (!loggedInUser) return alert("Log in to comment!");
 
     try {
       const response = await fetch(`https://juancast.onrender.com/api/posts/${postId}/reply`, {
@@ -218,7 +228,7 @@ const ChatPanel = ({ onPostRequested, focusPostId, focusReplyIndex, focusKey }) 
                     ) : (
                       <span className="chat-user">{post.user}</span>
                     )}
-                    <span className="chat-time">• {timeAgo(post.createdAt)}</span>
+                    <span className="chat-time">{timeAgo(post.createdAt)}</span>
                   </div>
                   {post.text && <div className="chat-text">{post.text}</div>}
                   
