@@ -278,75 +278,87 @@
   color: #666;
 }
 
-@container (max-width: 560px) {
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .rankings-view {
+    container-type: normal !important;
+  }
+
+  .rankings-view-heading {
+    margin: 20px 0 20px;
+  }
+
+  /* 1. Force container to fit exactly 100% of the screen */
   .rankings-container,
   .rankings-container.podium-one,
-  .rankings-container.podium-two {
-    grid-template-columns: minmax(0, 300px);
-    align-items: center;
-    gap: 28px;
+  .rankings-container.podium-two,
+  .rankings-container.podium-three {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: flex-end !important;
+    overflow: hidden !important; /* Disable scrolling completely */
+    padding: 20px 10px 20px 10px !important; 
+    gap: 8px !important; /* Very tight gap to save space */
+    width: 100% !important;
+    box-sizing: border-box;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
-  .rankings-container.podium-three .gold-card {
-    order: -1;
+  /* 2. Allow cards to squish and share the screen evenly */
+  .ranking-card {
+    flex: 1 1 0 !important; /* Divides the space equally */
+    min-width: 0 !important; /* Allows them to shrink below their content size */
+    max-width: none !important;
+    margin: 0 !important; 
   }
 
+  /* 3. Keep Gold slightly elevated and a tiny bit wider */
+  .gold-card {
+    flex: 1.15 1 0 !important; /* 15% wider than the others */
+    transform: translateY(-12px) !important; 
+  }
+
+  /* 4. Flatten the rotations */
   .rankings-container.podium-three .silver-card,
   .rankings-container.podium-three .bronze-card,
-  .rankings-container.podium-two .ranking-card {
-    transform: none;
+  .silver-card, 
+  .bronze-card {
+    transform: none !important;
   }
 
-  .ranking-card {
-    justify-self: center;
+  /* 5. Drastically shrink internal content so it fits the narrow cards */
+  .ranking-info {
+    padding: 12px 4px !important; 
   }
-}
+  
+  .ranking-title {
+    font-size: 9px !important;
+    margin-bottom: 4px !important;
+    white-space: normal;
+  }
 
-/* --- FULL-SCREEN YOUTUBE HOVER STYLES --- */
-.ranking-img-placeholder {
-  position: relative;
-  cursor: crosshair; 
-}
+  .ranking-votes { 
+    font-size: 13px !important; 
+    margin-bottom: 10px !important;
+  }
+  
+  .cast-vote-btn {
+    padding: 8px 6px !important;
+    font-size: 9px !important;
+    width: 95% !important; /* Keeps the button from overflowing */
+  }
 
-.youtube-hover-scrim {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.65); 
-  backdrop-filter: blur(12px); 
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 9999999 !important; 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none; 
-  animation: fadeInBlur 0.2s ease-out forwards;
-}
-
-.youtube-video-container {
-  width: 800px;
-  max-width: 90vw;
-  aspect-ratio: 16 / 9; 
-  border-radius: 16px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-  overflow: hidden;
-  transform: scale(0.9);
-  animation: popVideo 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-}
-
-.youtube-video-container iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-@keyframes fadeInBlur {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes popVideo {
-  to { transform: scale(1); }
+  /* Shrink the medal icons */
+  .ranking-medal {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    top: -10px !important;
+    right: -10px !important;
+    border-width: 2px !important;
+  }
+  
 }

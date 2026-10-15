@@ -217,34 +217,32 @@ html, body, #root {
     gap: 8px;
   }
   
-  .login-left { 
+.login-left { 
+    flex: 0 0 30vh; /* Strictly reserves exactly 30% of the screen height */
+    width: 100%;
     display: flex; 
     justify-content: center; 
     align-items: center;
     background: transparent; 
-    height: 130px;
-    width: 100%;
-    margin-bottom: 0;
-    flex: none; 
+    z-index: 1;
   }
   
   .hero-icon { 
-    max-width: 165px;
-    max-height: 125px;
-    width: auto;
-    height: auto;
+    width: 250px !important; 
+    height: auto !important; 
     object-fit: contain;
   }
   
   .login-right { 
+    flex: 1; /* Automatically takes up all remaining space below the logo */
+    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     background: transparent; 
-    width: 100%;
-    padding: 0;
-    flex: none;
-    overflow: visible;
+    padding: 0 20px;
+    z-index: 2;
+    overflow-y: auto; /* Allows only the form area to scroll if the screen shrinks */
   }
 
   /* One identical container footprint */

@@ -66,7 +66,13 @@ const PollDetail = () => {
     fetchPollData();
   }, [id]);
 
-  const handleOpenVoteModal = (artist) => {
+const handleOpenVoteModal = (artist) => {
+    // PREVENT VOTING IF POLL IS ENDED
+    if (new Date() > new Date(poll.toDate)) {
+      setFeedback({ isOpen: true, message: 'This poll has already ended.', type: 'error' });
+      return;
+    }
+
     const currentUser = JSON.parse(localStorage.getItem('juancast_user') || 'null');
     if (!currentUser || !currentUser.email) {
       navigate('/login');
@@ -120,7 +126,7 @@ const PollDetail = () => {
 
   if (loading) return <div style={{ textAlign: 'center', padding: '50px' }}>Loading Poll...</div>;
   if (!poll) return <div style={{ textAlign: 'center', padding: '50px' }}>Poll not found.</div>;
-
+  const isPollEnded = new Date() > new Date(poll.toDate);
   return (
     <div className="poll-detail-layout">
       
@@ -165,8 +171,13 @@ const PollDetail = () => {
               {/* VOTE BUTTON (Now uses your imported local asset) */}
               <button 
                 className="artist-vote-btn"
-                onClick={() => handleOpenVoteModal(artist)}
-                title="Cast Vote"
+                onClick={() => !isPollEnded && handleOpenVoteModal(artist)}
+                disabled={isPollEnded}
+                title={isPollEnded ? "Poll has ended" : "Cast Vote"}
+                style={{ 
+                  opacity: isPollEnded ? 0.4 : 1, 
+                  cursor: isPollEnded ? 'not-allowed' : 'pointer' 
+                }}
               >
                 <img 
                   src={categoryLogo} 

@@ -167,8 +167,18 @@ const Layout = ({
           </div>
 
           {showActions && (
+            
             <div className="nav-actions">
               <div className="notification-menu-wrapper" ref={notificationRef}>
+                <button 
+                type="button"
+                className="calendar-icon" 
+                onClick={onCalendarClick} 
+                aria-label="Daily rewards"
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                <img src={calendarIcon} alt="" aria-hidden="true" style={{ width: '24px', height: '24px' }} />
+              </button>
                 <button
                   type="button"
                   className="nav-notification-toggle"
@@ -319,28 +329,19 @@ const Layout = ({
             </nav>
             
             {/* UPDATED: Currency Display with Images */}
-            <div className="welcome-stats" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+<div className="welcome-stats">
               {tokens !== null && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span className="currency-badge">
                   <img src={SunCurr} alt="Suns" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> 
                   {tokens}
                 </span>
               )}
               {stars !== null && (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span className="currency-badge">
                   <img src={StarCurr} alt="Stars" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> 
                   {stars}
                 </span>
               )}
-              <button 
-                type="button"
-                className="calendar-icon" 
-                onClick={onCalendarClick} 
-                aria-label="Daily rewards"
-                style={{ cursor: 'pointer', marginLeft: '5px' }}
-              >
-                <img src={calendarIcon} alt="" aria-hidden="true" />
-              </button>
             </div>
           </div>
         )}

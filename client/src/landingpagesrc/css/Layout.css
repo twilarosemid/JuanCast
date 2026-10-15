@@ -261,3 +261,109 @@ html, body, #root {
 .modal-cancel-btn:hover { background: #e2e6ea; }
 .modal-confirm-btn { background: #2563eb; color: white; }
 .modal-confirm-btn:hover { background: #1d4ed8; }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 1024px) {
+  /* 1. Change grid to a single vertical column */
+  .landing-grid {
+    display: flex !important;
+    flex-direction: column;
+    padding: 0 16px 20px 16px !important;
+    gap: 15px;
+    overflow-y: auto; 
+  }
+
+  /* 2. Hide the sidebars on mobile */
+  .left-panel,
+  .right-panel {
+    display: none !important; 
+  }
+
+  /* 3. Allow the center panel to take full width */
+  .center-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 0 !important;
+    overflow: visible; 
+  }
+
+  /* 4. Top Blue Bar - Logo Left, Icons Right */
+  .landing-nav-blue {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 20px !important;
+  }
+
+  .nav-logo {
+    margin-right: auto !important;
+  }
+
+  /* --- Top Blue Bar Icons --- */
+ /* --- Top Blue Bar Icons (Fix Vertical Stacking) --- */
+  .nav-actions {
+    display: flex !important;
+    flex-direction: row !important; /* Forces them strictly horizontal */
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 16px !important;
+    margin-left: auto !important;
+  }
+
+  /* Prevent the wrappers from breaking the row */
+  .notification-menu-wrapper,
+  .nav-profile-dropdown-wrapper {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .calendar-icon {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* --- Welcome Bar (Hide Text/Stats, Keep Buttons) --- */
+  .welcome-text, 
+  .welcome-stats {
+    display: none !important; /* Completely hides the text and currencies on mobile */
+  }
+
+  .welcome-bar {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    height: auto !important;
+  }
+
+  .welcome-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 35px !important; /* Clean, wide spacing for the 3 remaining links */
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .welcome-nav-link {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+  }
+
+.welcome-stats {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.currency-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+}

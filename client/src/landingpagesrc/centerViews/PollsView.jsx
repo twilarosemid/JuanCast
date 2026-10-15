@@ -38,7 +38,7 @@ const PollsView = () => {
   const [isWideScreen, setIsWideScreen] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  const navigate = useNavigate(); // Added navigation hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadPolls = async () => {
@@ -49,12 +49,10 @@ const PollsView = () => {
         const data = await response.json();
         
         if (Array.isArray(data)) {
-          const activePolls = data.filter(poll => !isPollEnded(poll.toDate));
+          setOriginalPolls(data);
           
-          setOriginalPolls(activePolls);
-          
-          if (activePolls.length > 0) {
-            setCenterIndex(Math.min(1, activePolls.length - 1));
+          if (data.length > 0) {
+            setCenterIndex(Math.min(1, data.length - 1));
           }
         }
       } catch (error) {
@@ -64,7 +62,8 @@ const PollsView = () => {
       }
     };
 
-    const handleResize = () => setIsWideScreen(window.innerWidth >= 1400);
+    // Changed breakpoint from 1400px to 1024px
+    const handleResize = () => setIsWideScreen(window.innerWidth >= 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
     loadPolls();
@@ -73,7 +72,6 @@ const PollsView = () => {
   }, []);
 
   const handlePollClick = (index, poll, isCenter) => {
-    // If it's already in the center, navigate to details. Otherwise, bring to center.
     if (isCenter) {
       navigate(`/polls/${poll._id || poll.id}`);
     } else {
@@ -118,10 +116,18 @@ const PollsView = () => {
               const isCenter = diff === 0;
               const isVisible = Math.abs(diff) <= 2; 
               
-              const spacingMultiplier = isWideScreen ? 320 : 245;
+              // Mobile gets tight stack (140), Desktop stays wide (320)
+// Mobile gets tight stack (140), Desktop stays wide (320)
+              const spacingMultiplier = isWideScreen ? 320 : 140; 
               const offset = diff * spacingMultiplier;
               
-              const scale = isCenter ? 1.1 : Math.abs(diff) === 1 ? 0.92 : 1;
+              // Desktop scales center up to 1.1, Mobile keeps it at a normal 1.0
+              const centerScale = isWideScreen ? 1.1 : 0.95;
+              const sideScale = isWideScreen ? 0.92 : 0.85;
+              const farScale = isWideScreen ? 1 : 0.7;
+              
+              const scale = isCenter ? centerScale : Math.abs(diff) === 1 ? sideScale : farScale;
+              
               const opacity = isCenter ? 1 : Math.abs(diff) === 1 ? 0.72 : Math.abs(diff) === 2 ? 0.2 : 0;
               const blur = isCenter ? '0px' : Math.abs(diff) === 1 ? '1.2px' : Math.abs(diff) === 2 ? '3px' : '5px';
               const zIndex = isVisible ? 10 - Math.abs(diff) : -1;

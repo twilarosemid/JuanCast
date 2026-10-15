@@ -455,3 +455,137 @@
   display: block;
   margin-left: auto;
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .polls-page-wrapper {
+    flex-direction: column !important;
+    gap: 20px !important;
+    padding: 15px !important;
+  }
+
+  .polls-sidebar {
+    width: 100% !important;
+  }
+
+  /* Filters Row */
+  .poll-group-filters {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 10px !important;
+    padding-bottom: 5px !important; 
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+  }
+
+  .poll-group-filters::-webkit-scrollbar {
+    display: none; 
+  }
+
+.poll-group-filter {
+    flex: 0 0 auto !important; 
+    width: auto !important; /* Forces the button to only be as wide as its text */
+    white-space: nowrap !important; 
+    min-height: auto !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    text-align: center !important;
+  }
+
+  .polls-main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 35px !important; 
+  }
+
+  .poll-group-heading {
+    font-size: 18px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* --- OUTFADING OVERLAY SYSTEM & EXPAND TOGGLE --- */
+  .polls-grid-wrapper {
+    position: relative !important;
+    width: 100% !important;
+  }
+
+  /* Base styles for the grid */
+  .polls-grid {
+    display: flex !important;
+    gap: 15px !important;
+    /* Added a smooth easing transition for the height */
+    transition: max-height 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  }
+
+  /* COLLAPSED STATE: Vertical stack restricted to ~1.5 cards */
+  .polls-grid.collapsed {
+    flex-direction: column !important;
+    max-height: 380px !important; 
+    overflow: hidden !important; 
+    padding-bottom: 0 !important; 
+    padding-right: 0 !important; 
+  }
+
+  /* EXPANDED STATE: Full vertical stack */
+  .polls-grid.expanded {
+    flex-direction: column !important; 
+    /* Changed from 'none' to a large number so CSS can animate it */
+    max-height: 3000px !important; 
+    overflow: hidden !important; 
+    padding-bottom: 15px !important;
+  }
+  /* Make cards full width in both states */
+  .polls-grid.collapsed .poll-card,
+  .polls-grid.expanded .poll-card {
+    width: 100% !important; 
+    max-width: none !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  /* --- THE BOTTOM FADE OVERLAY --- */
+  .polls-fade-overlay {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important; 
+    height: 140px !important; /* Vertical fade covering the bottom */
+    background: linear-gradient(to bottom, rgba(245, 247, 250, 0) 0%, rgba(245, 247, 250, 1) 75%) !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important; /* Centers the button horizontally */
+    padding-bottom: 10px !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+  }
+
+  /* --- UNIFIED BUTTON STYLES (View All & Show Less) --- */
+  .view-all-pill,
+  .show-less-btn {
+    background-color: #ffffff !important;
+    color: #1e3a8a !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    padding: 10px 24px !important;
+    border-radius: 25px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important; /* Keeps it pill-shaped instead of full width */
+    margin: 0 auto !important; /* Centers the button */
+    pointer-events: none !important; /* Lets the overlay handle the click for View All */
+  }
+
+  /* Show Less Specific Adjustments */
+  .show-less-btn {
+    pointer-events: auto !important; /* Restores clickability */
+    margin-top: 15px !important;
+    cursor: pointer !important;
+  }
+}

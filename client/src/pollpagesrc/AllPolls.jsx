@@ -5,10 +5,13 @@ import './css/Polls.css';
 const AllPolls = () => {
   const navigate = useNavigate();
   const [polls, setPolls] = useState([]);
-  const [pollGroups, setPollGroups] = useState([]); // NEW: State for the dynamic groups
+  const [pollGroups, setPollGroups] = useState([]); 
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState('All');
   const [activeType, setActiveType] = useState('All');
+  
+  // Tracks which categories are vertically expanded
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   useEffect(() => {
     // 1. Fetch the Polls
@@ -51,7 +54,12 @@ const AllPolls = () => {
     if (!dateString) return "TBA";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "TBA";
-    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Toggles a category between horizontal swipe and vertical stack
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
   };
 
   return (
@@ -93,13 +101,13 @@ const AllPolls = () => {
             ALL
           </button>
           
-          {/* Dynamic Image Group Buttons */}
+          {/* Dynamic Group Buttons */}
           {pollGroups.map(group => (
             <button 
               key={group._id}
               className={`poll-group-filter ${activeGroup === group.name ? 'active' : ''}`}
               onClick={() => setActiveGroup(group.name)}
-              title={group.name} // Shows name on hover
+              title={group.name} 
             >
               {group.name}
             </button>
@@ -108,33 +116,59 @@ const AllPolls = () => {
       </aside>
 
       <main className="polls-main-content">
-        {pollsByGroup.map(group => (
-          <section className="poll-group-section" key={group.name}>
-            <h2 className="poll-group-heading">{group.name}</h2>
-            <div className="polls-grid">
-              {group.polls.map(poll => (
-                <div
-                  key={poll._id || poll.id}
-                  className="poll-card"
-                  onClick={() => navigate(`/polls/${poll._id || poll.id}`)}
-                >
-                  <div className="poll-card-image" style={{ backgroundImage: `url(${poll.imageUrl || ''})` }}></div>
-                  <div className="poll-card-info">
-                    <h3 className="poll-card-title">{poll.title || "Untitled Poll"}</h3>
-                    <p className="poll-card-date">
-                      {formatDate(poll.fromDate)} - {formatDate(poll.toDate)}
-                    </p>
-                    <div className="poll-card-tags">
-                      <span className="blue-icon">🪩</span>
-                      <span className="tag-group">{group.name}</span>
-                      <span className="tag-type">{poll.type || 'Minor'}</span>
+        {pollsByGroup.map(group => {
+          const isExpanded = expandedGroups[group.name];
+          const hasMultiple = group.polls.length > 1;
+
+          return (
+            <section className="poll-group-section" key={group.name}>
+              <h2 className="poll-group-heading">{group.name}</h2>
+              
+              <div className={`polls-grid-wrapper ${isExpanded ? 'is-expanded' : ''}`}>
+                
+                {/* Toggles between 'collapsed' (horizontal swipe) and 'expanded' (vertical stack) */}
+                <div className={`polls-grid ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                  {group.polls.map(poll => (
+                    <div
+                      key={poll._id || poll.id}
+                      className="poll-card"
+                      onClick={() => navigate(`/polls/${poll._id || poll.id}`)}
+                    >
+                      <div className="poll-card-image" style={{ backgroundImage: `url(${poll.imageUrl || ''})` }}></div>
+                      <div className="poll-card-info">
+                        <h3 className="poll-card-title">{poll.title || "Untitled Poll"}</h3>
+                        <p className="poll-card-date">
+                          {formatDate(poll.fromDate)} - {formatDate(poll.toDate)}
+                        </p>
+                        <div className="poll-card-tags">
+                          <span className="blue-icon">🪩</span>
+                          <span className="tag-group">{group.name}</span>
+                          <span className="tag-type">{poll.type || 'Minor'}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
-        ))}
+
+                {/* Outfading Overlay (Only visible when collapsed and has multiple cards) */}
+                {!isExpanded && hasMultiple && (
+                  <div className="polls-fade-overlay" onClick={() => toggleGroup(group.name)}>
+                    <div className="view-all-pill">View All ➔</div>
+                  </div>
+                )}
+
+                {/* Show Less Button (Only visible when vertically expanded) */}
+                {isExpanded && hasMultiple && (
+                  <button className="show-less-btn" onClick={() => toggleGroup(group.name)}>
+                    ↑ Show Less
+                  </button>
+                )}
+                
+              </div>
+            </section>
+          );
+        })}
+        
         {!pollsByGroup.length && (
           <p className="polls-empty-state">No polls match your filters.</p>
         )}
